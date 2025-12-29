@@ -60,7 +60,7 @@ bool PhongMaterial::IsTransparent() const
 
 void TextureMaterial::InitFromWavefrontMaterial(const WavefrontObjMaterial_cptr& mat, const std::filesystem::path& base_folder)
 {
-	__super::InitFromWavefrontMaterial(mat, base_folder);
+	PhongMaterial::InitFromWavefrontMaterial(mat, base_folder);
 
 	if (!mat->bumpMapTexture.empty())
 	{
@@ -82,9 +82,9 @@ TextureMaterial::TextureMaterial()
 {
 }
 
-DepthMapMaterial::DepthMapMaterial() 
-	: perspective(true)
+DepthMapMaterial::DepthMapMaterial()
+	: nearPlane(0)
 	, farPlane(0)
-	, nearPlane(0)
+	, perspective(true)
 {
 }

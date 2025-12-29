@@ -1,4 +1,4 @@
-#version 400
+#version 410
 
 #include light_common.glsl
 

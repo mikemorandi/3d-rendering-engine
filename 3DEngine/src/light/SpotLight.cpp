@@ -5,6 +5,7 @@
 #include "../shape/WireCone.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/ext.hpp>
 
@@ -34,7 +35,7 @@ SpotLight::SpotLight(const glm::vec3& direction, float cutoffAngle, float expone
 
 void SpotLight::SetPosition(const glm::vec4& pos)
 {
-	__super::SetPosition(pos);
+	PointLight::SetPosition(pos);
 	UpdateShadow();
 }
 

@@ -3,9 +3,8 @@
 
 #include "../error.h"
 
-#pragma warning(push, 0)   
-#include <IL/il.h>
-#pragma warning(pop)
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 bool ImageUtil::initialized = false;
 
@@ -13,41 +12,35 @@ ImageData_ptr ImageUtil::LoadImage(const std::filesystem::path path)
 {
 	Initialize();
 
-	ILuint imgId;
-	ilGenImages(1, &imgId);
-	ilBindImage(imgId);
-
 	ImageData_ptr data;
 
-	if (ilLoadImage(path.generic_string().c_str()) == IL_TRUE)
+	int width, height, channels;
+
+	// Load image using stb_image
+	// Request 4 components (RGBA) to match the previous DevIL behavior
+	unsigned char* imgData = stbi_load(path.string().c_str(), &width, &height, &channels, 4);
+
+	if (imgData)
 	{
-		if (ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE) == IL_TRUE)
+		// Create ImageData with 4 components (RGBA)
+		data = ImageData::Create(width, height, 4);
+
+		// stb_image loads with origin at top-left, OpenGL expects bottom-left
+		// Flip the image vertically
+		for (int y = 0; y < height; y++)
 		{
-			int width = ilGetInteger(IL_IMAGE_WIDTH);
-			int height = ilGetInteger(IL_IMAGE_HEIGHT);
-			int bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
-
-			data = ImageData::Create(width, height, bpp);
-
-			//Return a copy because the image gets destroyed after this function returns
-			ILubyte* imgData = ilGetData();
-			auto dataCopy = std::unique_ptr<unsigned char[]>();
-
-			// While the loaded image has its origin at top left, OpenGL uses a bottom left origin -> flip vertcally
-			for (size_t y = 0; y < height; y++)
-			{
-				size_t src_offset = y * width * bpp;
-				size_t dst_offset = (height - 1 - y) * width * bpp;
-				std::copy(imgData + src_offset, imgData + src_offset + width * bpp, data->pixelData.get() + dst_offset);
-			}		
+			size_t src_offset = y * width * 4;
+			size_t dst_offset = (height - 1 - y) * width * 4;
+			std::copy(imgData + src_offset, imgData + src_offset + width * 4, data->pixelData.get() + dst_offset);
 		}
-		else
-			Error("Could not convert texture: " + path.generic_string());
 
-		ilDeleteImage(imgId);
+		// Free the stb_image allocated memory
+		stbi_image_free(imgData);
 	}
 	else
-		Error("Could not load texture: " + path.generic_string());
+	{
+		Error("Could not load texture: " + path.string() + " - " + std::string(stbi_failure_reason()));
+	}
 
 	return data;
 }
@@ -67,71 +60,68 @@ std::vector<ImageData_ptr> ImageUtil::LoadCubeMapImages(const std::filesystem::p
 {
 	Initialize();
 
-	ILuint imgId;
-	ilGenImages(1, &imgId);
-	ilBindImage(imgId);
+	int originalWidth, originalHeight, channels;
+
+	// Load the cubemap cross image
+	unsigned char* imgData = stbi_load(path.string().c_str(), &originalWidth, &originalHeight, &channels, 4);
+
+	if (!imgData)
+	{
+		Error("Could not load cubemap texture: " + path.string() + " - " + std::string(stbi_failure_reason()));
+		return std::vector<ImageData_ptr>();
+	}
 
 	std::vector<ImageData_ptr> subImages(6);
 
-	if (ilLoadImage(path.generic_string().c_str()) == IL_TRUE)
+	// Calculate subimage sizes (assuming cross layout)
+	unsigned int width = originalWidth / 4;
+	unsigned int height = originalHeight / 3;
+	int bpp = 4; // RGBA
+
+	// Allocate memory for each face
+	for (int i = 0; i < 6; i++)
 	{
-		if (ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE) == IL_TRUE)
-		{
-			//subimage sizes
-			unsigned int originalWidth = ilGetInteger(IL_IMAGE_WIDTH);
-			unsigned int originalHeight = ilGetInteger(IL_IMAGE_HEIGHT);
-			ILenum format = ilGetInteger(IL_IMAGE_FORMAT);
-
-			unsigned int width = originalWidth / 4;
-			unsigned int height = originalHeight / 3;
-			int bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
-
-			//Allocate memory
-			subImages[0] = ImageData::Create(width, height, bpp);
-			subImages[1] = ImageData::Create(width, height, bpp);
-			subImages[2] = ImageData::Create(width, height, bpp);
-			subImages[3] = ImageData::Create(width, height, bpp);
-			subImages[4] = ImageData::Create(width, height, bpp);
-			subImages[5] = ImageData::Create(width, height, bpp);
-
-			auto copySubpixels = [&originalWidth, &originalHeight, &bpp]
-				(size_t xOffset, size_t yOffset, size_t width, size_t height, ImageData_ptr& dest)
-				{
-					ILubyte* imgData = ilGetData();
-
-					for (size_t y = 0; y < height; y++)
-					{
-						size_t srcOffset = ( (y + yOffset) * originalWidth + xOffset) * bpp;
-						size_t dstOffset = y * width * bpp;
-						std::copy(imgData + srcOffset, imgData + srcOffset + width * bpp, dest->pixelData.get() + dstOffset);
-					}
-				};
-
-			copySubpixels(width, 0, width, height, subImages[0]);
-			copySubpixels(0, height, width, height, subImages[1]);
-			copySubpixels(1 * width, height, width, height, subImages[2]);
-			copySubpixels(2 * width, height, width, height, subImages[3]);
-			copySubpixels(3 * width, height, width, height, subImages[4]);
-			copySubpixels(width, 2 * height, width, height, subImages[5]);
-
-			return subImages;	
-
-		}
-
-		ilDeleteImage(imgId);
+		subImages[i] = ImageData::Create(width, height, bpp);
 	}
 
-	return std::vector<ImageData_ptr>();
+	// Lambda to copy a subregion from the loaded image
+	auto copySubpixels = [&](size_t xOffset, size_t yOffset, size_t subWidth, size_t subHeight, ImageData_ptr& dest)
+	{
+		for (size_t y = 0; y < subHeight; y++)
+		{
+			size_t srcOffset = ((y + yOffset) * originalWidth + xOffset) * bpp;
+			size_t dstOffset = y * subWidth * bpp;
+			std::copy(imgData + srcOffset, imgData + srcOffset + subWidth * bpp, dest->pixelData.get() + dstOffset);
+		}
+	};
+
+	// Extract the 6 faces from the cross layout
+	// Layout (standard cubemap cross):
+	//     [top]
+	// [left][front][right][back]
+	//     [bottom]
+	copySubpixels(width, 0, width, height, subImages[0]);            // +X (right) - top
+	copySubpixels(0, height, width, height, subImages[1]);           // -X (left)
+	copySubpixels(1 * width, height, width, height, subImages[2]);   // +Y (top) - front
+	copySubpixels(2 * width, height, width, height, subImages[3]);   // -Y (bottom) - right
+	copySubpixels(3 * width, height, width, height, subImages[4]);   // +Z (front) - back
+	copySubpixels(width, 2 * height, width, height, subImages[5]);   // -Z (back) - bottom
+
+	// Free the stb_image allocated memory
+	stbi_image_free(imgData);
+
+	return subImages;
 }
 
 void ImageUtil::Initialize()
 {
 	if (!ImageUtil::initialized)
 	{
-		ilInit();
+		// stb_image doesn't require explicit initialization
+		// Set vertical flip on load to false (we handle it manually for consistency)
+		stbi_set_flip_vertically_on_load(0);
 		initialized = true;
 	}
-
 }
 
 inline ImageData_ptr ImageData::Create(unsigned int width, unsigned int height, unsigned int components)
@@ -146,7 +136,7 @@ ImageData::ImageData(unsigned int width, unsigned int height, unsigned int compo
 {
 	int numBytes = width * height * sizeof(pixelFormat_t) * components;
 	pixelData.reset(new pixelFormat_t[numBytes]);
-	
+
  }
 
 size_t ImageData::Bytes()

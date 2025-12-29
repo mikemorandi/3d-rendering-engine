@@ -5,7 +5,7 @@
 
 void WireCube::Init() {
 
-	__super::Init();
+	RenderMesh::Init();
 
 	name = "WireCube";
 

@@ -4,7 +4,7 @@
 
 void Box::Init() {
 
-	__super::Init();
+	RenderMesh::Init();
 
     float side = 0.5f;
 

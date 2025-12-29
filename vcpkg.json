@@ -1,0 +1,12 @@
+{
+  "name": "3d-rendering-engine",
+  "version": "1.0.0",
+  "description": "A 3D rendering engine using modern OpenGL 4.1",
+  "dependencies": [
+    "glfw3",
+    "glbinding",
+    "glm",
+    "tinyxml2"
+  ],
+  "builtin-baseline": "55fab67aea1027f7179ae6b5c54a5ba9091c16aa"
+}

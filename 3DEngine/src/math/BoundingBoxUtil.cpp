@@ -3,10 +3,11 @@
 #include "BoundingBoxUtil.h"
 #include "BoundingBox.h"
 
-#include <algorithm>  
-#include <iterator> 
-#include <limits> 
+#include <algorithm>
+#include <iterator>
+#include <limits>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/orthonormalize.hpp>
 
 CoordinateFrame BoundingBoxUtil::BasisFromDirection(const glm::vec3 & direction)

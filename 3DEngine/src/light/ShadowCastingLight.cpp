@@ -7,7 +7,7 @@ Shadow_ptr ShadowCastingLight::Shadow() const
 	return shadow;
 }
 
-void ShadowCastingLight::SetSceneBoundingBox(AABBox & box)
+void ShadowCastingLight::SetSceneBoundingBox(const AABBox & box)
 {
 	sceneBbox = box;
 	UpdateShadow();

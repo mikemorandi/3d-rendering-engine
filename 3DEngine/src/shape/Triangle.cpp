@@ -9,7 +9,7 @@ Triangle::Triangle() : RenderMesh()
 
 void Triangle::Init()  {
 
-	__super::Init();
+	RenderMesh::Init();
 
 	float radius = 0.5f;
 

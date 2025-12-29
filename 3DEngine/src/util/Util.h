@@ -23,8 +23,8 @@ public:
 	static void PrintUniforms(const ShaderBase_ptr& shader);
 	static RenderMesh_ptr LoadModel(const std::filesystem::path& path, bool computeTangents = false);
 
-	static std::filesystem::path Util::ExtractBaseFolder(std::string path);
-	static std::filesystem::path Util::ExtractFileName(std::string path);
+	static std::filesystem::path ExtractBaseFolder(std::string path);
+	static std::filesystem::path ExtractFileName(std::string path);
 	static bool FileExists(const std::string& name);
 
 	static RenderMesh_ptr GetDragon();

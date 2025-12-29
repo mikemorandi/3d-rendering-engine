@@ -53,8 +53,8 @@ bool PhongShader::SetMaterial(const Material_cptr& material)
 }
 
 bool PhongShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
-{	
-	bool ok = __super::Use(scene, modelTransform);
+{
+	bool ok = MaterialShader::Use(scene, modelTransform);
 
 	if (material)
 	{
@@ -95,7 +95,7 @@ bool PhongShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
 
 void PhongShader::UnUse()
 {
-	__super::UnUse();
+	MaterialShader::UnUse();
 	glDisable(GL_BLEND); // TODO: WTF?
 	glDepthMask(GL_TRUE);
 }

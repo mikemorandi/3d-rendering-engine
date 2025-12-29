@@ -21,8 +21,8 @@ SkyboxShader::~SkyboxShader(void)
 
 
 bool SkyboxShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
-{	
-	bool ok = __super::Use(scene,modelTransform);
+{
+	bool ok = MaterialShader::Use(scene,modelTransform);
 
 	//Bind cubemap texture to texture unit 0
 	if (material)

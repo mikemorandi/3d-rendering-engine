@@ -1,8 +1,10 @@
 # 3D Playground
 
-3D Playground consists of a library component *3DEngine* which holds components to build a graphical 3D application and an executable *Graphics Playground* which creates a window, loads a scene and connects mouse and keyboard inputs. As the name suggests, this is a playground to experment with 3D rendering concepts.
+3D Playground consists of a library component *3DEngine* which holds components to build a graphical 3D application and an executable *Graphics Playground* which creates a window, loads a scene and connects mouse and keyboard inputs. As the name suggests, this is a playground to experiment with 3D rendering concepts.
 
-The engine relies modern OpenGL 4 approach with GLSL shaders to leverage features of modern graphics cards in order to achieve high realism while maintaining interactive frame rates.
+The engine uses modern OpenGL 4.1 with GLSL shaders to leverage features of modern graphics cards in order to achieve high realism while maintaining interactive frame rates.
+
+**Cross-Platform Support:**  Builds on Windows, macOS, and Linux using CMake
 
 ## Features
 
@@ -32,34 +34,95 @@ The engine relies modern OpenGL 4 approach with GLSL shaders to leverage feature
 
 ## Prerequisites
 
-This project builds out of the box with [Microsoft Visual Studio Community Edition](https://visualstudio.microsoft.com). However, it is possible to build it with different compilers and for different platforms, since the code is platform-independent. See section 'Improvements'.
+* **CMake** 3.20 or higher
+* **C++17** compatible compiler (Visual Studio 2019+, GCC 9+, Clang 10+)
+* **vcpkg** for dependency management
 
-### Dependencies 
+This project now uses **CMake** for cross-platform builds and works on:
+- **Windows** (Visual Studio 2019+, MSVC)
+- **macOS** (Clang, Xcode)
+- **Linux** (GCC, Clang)
 
-This project uses [vcpkg](https://github.com/Microsoft/vcpkg) to manage dependencies. Install it and install the Visual Studio integration with 
-```vcpkg integrate install```
+### Dependencies
 
-These libraries are used in the project:
-* [GLFW3](https://www.glfw.org) for windows and input
-* [glbinding](https://glbinding.org) for typseafe OpenGL bindings
-* [TinyXML2](https://github.com/leethomason/tinyxml2) for XML parsing
-* [glm](https://glm.g-truc.net) for OpenGL mathematics
-* [DevIL](https://github.com/DentonW/DevIL) to load images
+This project uses [vcpkg](https://github.com/Microsoft/vcpkg) to manage dependencies.
 
-Install the dependencies with 
-```vcpkg install glload:x64-windows tinyxml2:x64-windows glm:x64-windows devil:x64-windows glfw3:x64-windows```
+**Required libraries:**
+* [GLFW3](https://www.glfw.org) - Window creation and input handling
+* [glbinding](https://glbinding.org) - Type-safe OpenGL bindings
+* [TinyXML2](https://github.com/leethomason/tinyxml2) - XML parsing
+* [GLM](https://glm.g-truc.net) - OpenGL mathematics
+* [stb_image](https://github.com/nothings/stb) - Image loading
 
-## Running the application
+**Install dependencies:**
 
-Set the working dir to the root of the data folder and run:
-```Graphics Playground.exe" [scene.xml]```
+**macOS:**
+```bash
+vcpkg install glfw3:x64-osx glbinding:x64-osx glm:x64-osx tinyxml2:x64-osx
+```
+
+**Linux:**
+```bash
+vcpkg install glfw3:x64-linux glbinding:x64-linux glm:x64-linux tinyxml2:x64-linux
+```
+
+**Windows:**
+```bash
+vcpkg install glfw3:x64-windows glbinding:x64-windows glm:x64-windows tinyxml2:x64-windows
+```
+
+## Building
+
+**See [BUILD.md](BUILD.md) for detailed build instructions for each platform.**
+
+**Quick start (all platforms):**
+```bash
+mkdir build && cd build
+cmake .. -DCMAKE_TOOLCHAIN_FILE=[path-to-vcpkg]/scripts/buildsystems/vcpkg.cmake
+cmake --build . --config Release
+```
+
+## Running the Application
+
+From the project root directory:
+
+**macOS/Linux:**
+```bash
+./build/bin/"Graphics Playground" [scene.xml]
+```
+
+**Windows:**
+```cmd
+build\bin\Release\"Graphics Playground.exe" [scene.xml]
+```
+
+If no scene is specified, the application will list available scenes interactively.
+
+## Platform Notes
+
+- **[BUILD.md](BUILD.md)** - Build instructions for each platform
+
+### macOS
+- OpenGL 4.1 is supported but **deprecated** since macOS 10.14 (Mojave)
+- You will see deprecation warnings - this is expected
+- For long-term macOS support, consider migrating to Metal or SDL3 (see `CROSS_PLATFORM_STRATEGY.md`)
+- Tested on Intel Macs; Apple Silicon may have limited OpenGL support
+
+### Linux
+- Requires OpenGL drivers and X11/Wayland
+- Install mesa development libraries: `sudo apt-get install libgl1-mesa-dev`
+
+### Windows
+- Fully supported with Visual Studio 2019+
+- Legacy .vcxproj files still available for direct VS builds
+
 
 ## License
+
 This project is licensed under the [GNU Lesser General Public License version 3](https://opensource.org/licenses/LGPL-3.0). See LICENSE file in the project root
 
-## Possible Improvements
 
-* Use CMake to be independent from specific build tools
-### Known issues:
-* You might have to copy lcms2.dll from your vcpkg/packages/lcms/bin folder to the x64/Debug folder
+## Known Issues
+
 * Rendering artifacts on Intel HD Graphics 4600
+* macOS OpenGL deprecation warnings (expected behavior)

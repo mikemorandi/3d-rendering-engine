@@ -10,7 +10,7 @@ WireCone_ptr WireCone::Create(float opening_angle, float height)
 
 void WireCone::Init() {
 
-	__super::Init();
+	RenderMesh::Init();
 
 	std::vector<glm::vec3> vertex_data;
 	std::vector<int> index_data;

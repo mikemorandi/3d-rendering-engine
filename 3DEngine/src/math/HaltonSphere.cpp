@@ -7,6 +7,7 @@
 #include <random>
 
 #include <glm/gtc/constants.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
 void HaltonSphere::GenerateRays(std::vector<glm::vec3> &points, int p2/*=7*/)

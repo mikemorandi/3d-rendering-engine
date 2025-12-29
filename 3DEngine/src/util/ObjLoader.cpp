@@ -31,7 +31,7 @@ IndexedRawMesh_ptr ObjLoader::LoadObj(std::istream& istr, const std::filesystem:
 	std::string currentMtl;
 	int groupFaceStartIdx = 0;
 
-	auto create_group = [&](std::string& groupName)
+	auto create_group = [&](const std::string& groupName)
 	{
 		if (newMesh->faces.size() > 0)
 		{

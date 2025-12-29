@@ -1,4 +1,4 @@
-#pragma once;
+#pragma once
 
 #include <glm/vec3.hpp>
 #include "../util/SharedPointer.h"
@@ -14,6 +14,7 @@ class Light
 public:
 
 	Light();
+	virtual ~Light() = default;
 
 	virtual const glm::vec3& Color();
 	virtual void SetColor(const glm::vec3& pos);

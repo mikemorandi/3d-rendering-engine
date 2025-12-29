@@ -65,7 +65,7 @@ bool AbstractRawMesh::HasTexCoords() const
 	return texCoords.size() > 0;
 }
 
-void AbstractRawMesh::AddGroup(std::string& name, std::string& material, Range& idxRange)
+void AbstractRawMesh::AddGroup(const std::string& name, const std::string& material, const Range& idxRange)
 {
 	groupRanges.push_back(idxRange);
 	groupNames.push_back(name);
@@ -174,14 +174,14 @@ bool IndexedRawMesh::ComputeTangents()
 			glm::vec3 sdir = R[0];
 			glm::vec3 tdir = R[1];
 
-			if (!_isnan(sdir.x) && !_isnan(sdir.y) && !_isnan(sdir.z))
+			if (!std::isnan(sdir.x) && !std::isnan(sdir.y) && !std::isnan(sdir.z))
 			{
 				tangents_tmp[v1Idx[Tri::pos]] += sdir;
 				tangents_tmp[v2Idx[Tri::pos]] += sdir;
 				tangents_tmp[v3Idx[Tri::pos]] += sdir;
 			}
 
-			if (!_isnan(tdir.x) && !_isnan(tdir.y) && !_isnan(tdir.z))
+			if (!std::isnan(tdir.x) && !std::isnan(tdir.y) && !std::isnan(tdir.z))
 			{
 				bitangents[v1Idx[Tri::pos]] += tdir;
 				bitangents[v2Idx[Tri::pos]] += tdir;
@@ -396,14 +396,14 @@ bool OpenGLRawMesh::ComputeTangents()
 			glm::vec3 sdir = R[0];
 			glm::vec3 tdir = R[1];
 
-			if (!_isnan(sdir.x) && !_isnan(sdir.y) && !_isnan(sdir.z))
+			if (!std::isnan(sdir.x) && !std::isnan(sdir.y) && !std::isnan(sdir.z))
 			{
 				tangents_tmp[v1Idx] += sdir;
 				tangents_tmp[v2Idx] += sdir;
 				tangents_tmp[v3Idx] += sdir;
 			}
 
-			if (!_isnan(tdir.x) && !_isnan(tdir.y) && !_isnan(tdir.z))
+			if (!std::isnan(tdir.x) && !std::isnan(tdir.y) && !std::isnan(tdir.z))
 			{
 				bitangents[v1Idx] += tdir;
 				bitangents[v2Idx] += tdir;

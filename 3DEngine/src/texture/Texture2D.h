@@ -29,7 +29,7 @@ public:
 
 	/// Creates a new texture with the passed texture id
 	/// The OpenGL texture is deleted when this instance is destroyed
-	static Texture2D_ptr Texture2D::Create(GLuint textHandle);
+	static Texture2D_ptr Create(GLuint textHandle);
 
 	const glm::ivec2& Dimensions() const;
 

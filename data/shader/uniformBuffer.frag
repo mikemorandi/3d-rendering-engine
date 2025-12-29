@@ -1,4 +1,4 @@
-#version 400
+#version 410
 
 /* The sole purpose of this shader is to be able to read parameters 
    for uniform buffer creation */

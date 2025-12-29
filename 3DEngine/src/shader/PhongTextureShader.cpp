@@ -125,7 +125,7 @@ bool PhongTextureShader::SetMaterial(const Material_cptr& material)
 
 VertexAttributeInfo_ptr PhongTextureShader::GetVertexAttributeInfo() const
 {
-	VertexAttributeInfo_ptr vai = __super::GetVertexAttributeInfo();
+	VertexAttributeInfo_ptr vai = PhongShader::GetVertexAttributeInfo();
 
 	if (!textureMaterial || (textureMaterial && !textureMaterial->bumpTexture) )
 		vai->mapping[GLSLShader::Tangent] = -1;

@@ -12,3 +12,4 @@ Graphics Playground/Debug/
 *.opendb
 *.db
 .vs/
+build

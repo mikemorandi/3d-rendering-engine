@@ -57,7 +57,7 @@ Scene::Scene(const Camera_ptr& cam,bool has_frambufer)
 
 	if(!lightModel->IsValid())
 	{
-		throw std::exception("Could not create light model");
+		throw std::runtime_error("Could not create light model");
 	}
 	
 	if(true)
@@ -195,7 +195,7 @@ void Scene::Render(const Viewport_ptr& viewport)
 	{
 		for (auto& pl : lightModel->pointLights)
 		{
-			if (auto& plr = pl->ModelRepresentation())
+			if (const auto& plr = pl->ModelRepresentation())
 			{
 					plr->Render(shared_from_this());
 			}
@@ -203,7 +203,7 @@ void Scene::Render(const Viewport_ptr& viewport)
 
 		for(auto& sl : lightModel->spotLights)
 		{
-			if (auto& plr = sl->ModelRepresentation())
+			if (const auto& plr = sl->ModelRepresentation())
 			{
 				plr->Render(shared_from_this());
 			}
@@ -211,7 +211,7 @@ void Scene::Render(const Viewport_ptr& viewport)
 
 		if (lightModel->directionalLight)
 		{
-			if (auto& dlr = lightModel->directionalLight->ModelRepresentation())
+			if (const auto& dlr = lightModel->directionalLight->ModelRepresentation())
 			{
 				dlr->Render(shared_from_this());
 			}

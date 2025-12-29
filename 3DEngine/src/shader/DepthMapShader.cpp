@@ -13,8 +13,8 @@ DepthMapShader::DepthMapShader()
 
 
 bool DepthMapShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
-{	
-	bool ok = __super::Use(scene, modelTransform);
+{
+	bool ok = MaterialShader::Use(scene, modelTransform);
 	
 	if (material)
 	{
@@ -45,5 +45,5 @@ bool DepthMapShader::SetMaterial(const Material_cptr& material)
 void DepthMapShader::UnUse()
 {
 	material->depthTexture->SetCompareMode(DepthTexture::CompareMode::RefToTexture);
-	__super::UnUse();
+	MaterialShader::UnUse();
 }

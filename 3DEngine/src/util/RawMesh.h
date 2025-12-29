@@ -70,7 +70,7 @@ public:
 
 	typedef std::pair<int, int> Range;
 
-	void AddGroup(std::string& name, std::string& material, Range& idxRange);
+	void AddGroup(const std::string& name, const std::string& material, const Range& idxRange);
 
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;

@@ -50,7 +50,7 @@ Texture2D::Texture2D(GLuint texHandle)
 			glBindTexture(GL_TEXTURE_2D, boundTex);
 	}
 	else
-		throw std::exception("Passed texture handle is not valid");
+		throw std::runtime_error("Passed texture handle is not valid");
 }
 
 Texture2D::Texture2D(int width, int height, Format format)
