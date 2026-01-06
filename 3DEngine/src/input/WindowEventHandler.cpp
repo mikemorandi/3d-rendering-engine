@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "WindowEventHandler.h"
 #include "ViewportObserver.h"
 #include "../rendering/Viewport.h"

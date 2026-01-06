@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "TimeManager.h"
 #include "../animation/TimeObserver.h"
 
@@ -38,7 +37,6 @@ void TimeManager::RemoveTimeObserver(const TimeObserver_ptr& observer)
 
 void TimeManager::HandleTick(double time)
 {
-	size_t s = timeObservers.size();
 	for(auto& cit : timeObservers)
 	{
 		if(auto tObserver = cit.lock())

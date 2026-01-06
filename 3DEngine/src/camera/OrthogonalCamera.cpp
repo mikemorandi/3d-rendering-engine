@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "OrthogonalCamera.h"
 #include "../rendering/Viewport.h"
 

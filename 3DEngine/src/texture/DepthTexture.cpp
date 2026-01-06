@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "DepthTexture.h"
 
 DepthTexture_ptr DepthTexture::Create(int width, int height)
@@ -24,7 +23,7 @@ DepthTexture::DepthTexture(int width, int height, Format format)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-	//Return value of comparison rather than the actual value
+	// Use GL_COMPARE_REF_TO_TEXTURE for hardware shadow comparison
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
 

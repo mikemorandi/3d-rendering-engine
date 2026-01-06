@@ -1,11 +1,11 @@
-#include "stdafx.h"
 #include "Shape.h"
 
 
 Shape::Shape()
-	: boundingBoxDirty(true)
-	, worldTransform(glm::mat4(1.f))
-{ 
+	: worldTransform(glm::mat4(1.f))
+	, boundingBoxDirty(true)
+	, castsShadows(true)  // By default, shapes cast shadows
+{
 
 }
 
@@ -13,8 +13,9 @@ Shape::Shape(const Shape& rhs)
 	: Shape()
 {
 	worldTransform = rhs.worldTransform;
-	bboxModelSpace = rhs.bboxModelSpace;	
+	bboxModelSpace = rhs.bboxModelSpace;
 	material = rhs.material;
+	castsShadows = rhs.castsShadows;
 }
 
 Shape::~Shape()

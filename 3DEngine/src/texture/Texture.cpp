@@ -1,5 +1,4 @@
 
-#include "stdafx.h"
 #include "Texture.h"
 
 #include "../error.h"
@@ -13,8 +12,8 @@ Texture::Texture(GLenum texTarget, Format format)
 }
 
 Texture::Texture(GLenum texTarget, GLuint texHandle, Format format)
-: target(texTarget)
-, texObject(texHandle)
+: texObject(texHandle)
+, target(texTarget)
 , textureFormat(format)
 , wrapMode(TextureWrapMode::Repeat)
 {

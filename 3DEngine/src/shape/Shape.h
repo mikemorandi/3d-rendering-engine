@@ -11,6 +11,7 @@ class Scene;
 
 SHARED_PTR_CLASS_DECL(Shape);
 SHARED_PTR_CLASS_DECL(Material);
+SHARED_PTR_CLASS_DECL(ShaderBase);
 
 class Shape : public Renderable
 {
@@ -28,7 +29,15 @@ public:
 
 	/// Returns the bounding box in world coordinates
 	virtual AABBox BoundingBox() const;
-	
+
+	// Shadow mapping support
+	void SetCastsShadows(bool enabled) { castsShadows = enabled; }
+	bool CastsShadows() const { return castsShadows; }
+
+	/// Render geometry using a specific shader (for shadow mapping, etc.)
+	/// The shader should already have Use() called before this method
+	virtual void RenderGeometry(const ShaderBase_ptr& shader) const { (void)shader; }
+
 protected:
 
 	Shape();
@@ -39,8 +48,9 @@ protected:
 	AABBox bboxModelSpace;
 	glm::mat4 worldTransform;
 
-private:	
+private:
 	mutable bool boundingBoxDirty;
 	mutable AABBox cachedWorldBBox;
+	bool castsShadows;
 };
 

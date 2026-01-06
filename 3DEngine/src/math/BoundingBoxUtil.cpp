@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #include "BoundingBoxUtil.h"
 #include "BoundingBox.h"
@@ -90,8 +89,7 @@ bool BoundingBoxUtil::DirectionalLightFrustum(const AABBox & bbox, const glm::ve
 	{
 		auto it = std::find(std::cbegin(has_comp), std::cend(has_comp), false);
 		int axis0 = static_cast<int>(std::distance(std::cbegin(has_comp), it));
-		int axis1 = (axis0 + 1) % 3;
-		int axis2 = (axis0 + 2) % 3;
+		(void)axis0;  // Used for indexing calculation below
 
 		frust.position = get_corner(has_comp[0], has_comp[1], has_comp[2]); // position
 		frust.frame = BasisFromDirection(lightDirNormalized);
@@ -149,15 +147,16 @@ bool BoundingBoxUtil::DirectionalLightFrustum(const AABBox & bbox, const glm::ve
 	return false;
 }
 
-bool BoundingBoxUtil::DirectionalLightFrustum(const AABBox & box, const glm::vec3 & lightDir, const Frustum & camFrustum, OrthogonalFrustum & frustum)
+bool BoundingBoxUtil::DirectionalLightFrustum([[maybe_unused]] const AABBox & box, const glm::vec3 & lightDir, const Frustum & camFrustum, OrthogonalFrustum & frustum)
 {
+	// TODO: Use box for bounds calculation
 	auto cam_points = camFrustum.CornerPoints();
 
 	glm::vec3 lightDirNormalized = glm::normalize(lightDir);
 	frustum.frame = BasisFromDirection(lightDirNormalized);
 
 	std::transform(cam_points.begin(), cam_points.end(), cam_points.begin(),
-		[&frustum,&camFrustum](const glm::vec3& v) { return frustum.frame * v; });
+		[&frustum](const glm::vec3& v) { return frustum.frame * v; });
 
 	frustum.left = std::numeric_limits<glm::vec3::value_type>::max();
 	frustum.right = -std::numeric_limits<glm::vec3::value_type>::max();

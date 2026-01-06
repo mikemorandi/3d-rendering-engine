@@ -1,5 +1,4 @@
-#include "stdafx.h"
-#include "ShDiffuseShader.h"
+#include "SHDiffuseShader.h"
 #include "../camera/Camera.h"
 #include "../scene/Scene.h"
 #include "../light/PointLight.h"
@@ -10,6 +9,7 @@
 #include "../util/ShCoeffParser.h"
 #include "UniformBuffer.h"
 #include "../config.h"
+#include "../error.h"
 
 ShDiffuseShader::ShDiffuseShader()
 : MaterialShader("diffuseSH")

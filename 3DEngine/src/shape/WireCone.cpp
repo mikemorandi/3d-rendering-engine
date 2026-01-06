@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "WireCone.h"
 #include <glm/gtc/matrix_transform.hpp>
 

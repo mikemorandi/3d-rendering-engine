@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "GeometryBuffer.h"
 #include "../shader/GBufferShader.h"
 
@@ -54,8 +53,9 @@ GeometryBuffer::~GeometryBuffer()
 	glDeleteFramebuffers(1,&m_DeferredFboHandle);
 }
 
- void GeometryBuffer::StartGBufferComp(const Scene_ptr& scene)
- {	 
+ void GeometryBuffer::StartGBufferComp([[maybe_unused]] const Scene_ptr& scene)
+ {
+	 // TODO: Use scene for GBuffer composition
 	 glBindFramebuffer(GL_FRAMEBUFFER, m_DeferredFboHandle);
 	 //glm::mat4 m;
 	 //m_Shader->Use(scene, m);

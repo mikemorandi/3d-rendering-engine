@@ -78,9 +78,11 @@ vcpkg install glfw3:x64-windows glbinding:x64-windows glm:x64-windows tinyxml2:x
 **Quick start (all platforms):**
 ```bash
 mkdir build && cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE=[path-to-vcpkg]/scripts/buildsystems/vcpkg.cmake
+cmake .. -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 cmake --build . --config Release
 ```
+
+> **Note:** Set the `VCPKG_ROOT` environment variable to your vcpkg installation path (e.g., `export VCPKG_ROOT=/path/to/vcpkg` on macOS/Linux or `set VCPKG_ROOT=C:\vcpkg` on Windows).
 
 ## Running the Application
 

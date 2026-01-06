@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "IntrinsicColorShader.h"
 #include "../util/Util.h"
 #include "../materials/Material.h"

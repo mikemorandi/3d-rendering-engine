@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -21,7 +20,7 @@ FirstPersonCameraAdapter::~FirstPersonCameraAdapter(void)
 {
 }
 
-void FirstPersonCameraAdapter::OnKey(const Input::Key key, const Input::Modifier mod)
+void FirstPersonCameraAdapter::OnKey(const Input::Key key, [[maybe_unused]] const Input::Modifier mod)
 {
 	//std::cout << "Key " << key << " pressed" << std::endl;
 
@@ -31,11 +30,13 @@ void FirstPersonCameraAdapter::OnKey(const Input::Key key, const Input::Modifier
 		case Input::Key::ARROW_DOWN: Walk(-0.2f);  break;
 		case Input::Key::ARROW_LEFT: StepSidewards(-0.2f);  break;
 		case Input::Key::ARROW_RIGHT: StepSidewards(0.2f);  break;
+		default: break;  // Handle other keys
 	}
 }
 
-void FirstPersonCameraAdapter::Walk(float amount)
+void FirstPersonCameraAdapter::Walk([[maybe_unused]] float amount)
 {
+	// TODO: implement walking
 	//vec3 dir = glm::normalize( cam->Target() - cam->Position() );
 	//cam->SetPosition( cam->Position() + dir * amount );
 }
@@ -48,9 +49,9 @@ void FirstPersonCameraAdapter::StepSidewards(float amount)
 	cam->UpdateViewMatrix();
 }
 
-void FirstPersonCameraAdapter::Turn(float degrees)
+void FirstPersonCameraAdapter::Turn([[maybe_unused]] float degrees)
 {
-
+	// TODO: implement turning
 }
 
 void FirstPersonCameraAdapter::OnMouseMove(const glm::vec2& position)
@@ -72,8 +73,9 @@ void FirstPersonCameraAdapter::OnMouseMove(const glm::vec2& position)
 	transformM = glm::translate(transformM,-target);
 
 	//Transform camera position
-	glm::vec4 newDir = transformM * glm::vec4(frustum.frame.ViewDir(), 0.0f);
-	glm::vec4 newUp = transformM * glm::vec4(frustum.frame.Up(), 0.0f);
+	// TODO: Apply transformation to camera
+	// glm::vec4 newDir = transformM * glm::vec4(frustum.frame.ViewDir(), 0.0f);
+	// glm::vec4 newUp = transformM * glm::vec4(frustum.frame.Up(), 0.0f);
 	lastScreenPos = position;
 }
 
@@ -82,12 +84,11 @@ void FirstPersonCameraAdapter::OnMouseDrag(const glm::vec2& screenPos)
 	lastScreenPos = screenPos;
 }
 
-void FirstPersonCameraAdapter::OnMouseClick(Input::MouseButton button, Input::Direction state , const glm::vec2& screenPos)
+void FirstPersonCameraAdapter::OnMouseClick([[maybe_unused]] Input::MouseButton button, [[maybe_unused]] Input::Direction state , const glm::vec2& screenPos)
 {
 	lastScreenPos = screenPos;
 }
 
-void FirstPersonCameraAdapter::OnMouseWheel(Input::Direction direction, const glm::vec2& screenPos)
+void FirstPersonCameraAdapter::OnMouseWheel([[maybe_unused]] Input::Direction direction, [[maybe_unused]] const glm::vec2& screenPos)
 {
-
 }

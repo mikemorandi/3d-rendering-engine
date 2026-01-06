@@ -1,6 +1,4 @@
-#include "stdafx.h"
 #include "SpotLight.h"
-#include "Shadow.h"
 
 #include "../shape/WireCone.h"
 
@@ -11,12 +9,12 @@
 
 #include <iostream>
 
-SpotLight_ptr SpotLight::Create(const glm::vec3& direction, float cutoffAngle, float exponent, bool castsShadow /*= true*/)
+SpotLight_ptr SpotLight::Create(const glm::vec3& direction, float cutoffAngle, float exponent)
 {
-	return std::make_shared<SpotLight>(direction, cutoffAngle, exponent, castsShadow);
+	return std::make_shared<SpotLight>(direction, cutoffAngle, exponent);
 }
 
-SpotLight::SpotLight(const glm::vec3& direction, float cutoffAngle, float exponent, bool castsShadow)
+SpotLight::SpotLight(const glm::vec3& direction, float cutoffAngle, float exponent)
 	: PointLight()
 	, cutoffAngle(cutoffAngle)
 	, exponent(exponent)
@@ -24,9 +22,6 @@ SpotLight::SpotLight(const glm::vec3& direction, float cutoffAngle, float expone
 	frame.ViewDir() = glm::normalize(direction);
 	frame.Up() = glm::vec3(0, 1, 0);
 	frame.Side() = glm::cross(frame.ViewDir(), frame.Up());
-
-	if (castsShadow)
-		shadow = Shadow::Create();
 
 	visMesh = WireCone::Create(cutoffAngle, 0.1f);
 	visMesh->Init();
@@ -36,47 +31,42 @@ SpotLight::SpotLight(const glm::vec3& direction, float cutoffAngle, float expone
 void SpotLight::SetPosition(const glm::vec4& pos)
 {
 	PointLight::SetPosition(pos);
-	UpdateShadow();
+	UpdateLightMatrices();
 }
 
 void SpotLight::SetDirection(const glm::vec3& dir)
-{ 
+{
 	frame.ViewDir() = glm::normalize(dir);
 	frame.Side() = glm::cross(frame.ViewDir(), frame.Up());
-	UpdateShadow();
 	UpdateVisMesh();
+	UpdateLightMatrices();
 }
 
 float SpotLight::CutoffAngle() const
-{ 
-	return cutoffAngle; 
+{
+	return cutoffAngle;
 }
 
 void SpotLight::SetCutoffAngle(float theta)
-{ 
+{
 	if (cutoffAngle != theta)
 	{
 		visMesh = WireCone::Create(theta, 0.1f);
 		visMesh->Init();
 	}
-	
+
 	cutoffAngle = theta;
+	UpdateLightMatrices();
 }
 
-void SpotLight::SetExponent(float exponent) 
-{ 
-	this->exponent = exponent; 
+void SpotLight::SetExponent(float exponent)
+{
+	this->exponent = exponent;
 }
 
 float SpotLight::Exponent() const
-{ 
-	return exponent; 
-}
-
-void SpotLight::UpdateShadow()
 {
-	if (shadow)
-		shadow->UpdateShadowMatrix(shared_from_this());
+	return exponent;
 }
 
 void SpotLight::UpdateVisMesh()
@@ -84,7 +74,6 @@ void SpotLight::UpdateVisMesh()
 	// TODO: use quaternions instead of euler angles here
 
 	const glm::vec3 z_vec(0, 0, 1);
-	float rot_angle = std::acos(glm::dot(frame.ViewDir(), z_vec));
 
 	glm::vec3 xz_plane_dir = frame.ViewDir();
 	xz_plane_dir.y = 0;
@@ -101,5 +90,33 @@ void SpotLight::UpdateVisMesh()
 	t[3] = position;
 	visMesh->SetWorldTransform(t);
 
+}
+
+glm::mat4 SpotLight::GetLightViewMatrix() const
+{
+	return lightViewMatrix;
+}
+
+glm::mat4 SpotLight::GetLightProjectionMatrix() const
+{
+	return lightProjectionMatrix;
+}
+
+void SpotLight::UpdateLightMatrices()
+{
+	// Create view matrix from spot light's frame
+	glm::vec3 lightPos = glm::vec3(position);
+	glm::vec3 target = lightPos + frame.ViewDir();
+
+	lightViewMatrix = glm::lookAt(lightPos, target, frame.Up());
+
+	// Create perspective projection matching the spotlight cone
+	// FOV should be 2 * cutoffAngle to cover the full cone
+	float fov = glm::radians(cutoffAngle * 2.0f);
+	float aspectRatio = 1.0f;  // Square shadow map
+	float nearPlane = 0.1f;
+	float farPlane = 100.0f;
+
+	lightProjectionMatrix = glm::perspective(fov, aspectRatio, nearPlane, farPlane);
 }
 

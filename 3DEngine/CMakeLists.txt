@@ -22,6 +22,8 @@ add_library(3DEngine STATIC
 
     # Core
     src/core/gl.h
+    src/core/GLErrorHandler.h
+    src/core/GLErrorHandler.cpp
     src/enums.h
     src/error.h
     src/common.cpp
@@ -45,12 +47,6 @@ add_library(3DEngine STATIC
     src/light/LightModel.cpp
     src/light/PointLight.h
     src/light/PointLight.cpp
-    src/light/Shadow.h
-    src/light/Shadow.cpp
-    src/light/ShadowCastingLight.h
-    src/light/ShadowCastingLight.cpp
-    src/light/ShadowUtil.h
-    src/light/ShadowUtil.cpp
     src/light/SpotLight.h
     src/light/SpotLight.cpp
 
@@ -99,14 +95,12 @@ add_library(3DEngine STATIC
     src/shader/MaterialShader.h
     src/shader/PhongShader.h
     src/shader/PhongShader.cpp
-    src/shader/PhongTextureShader.h
-    src/shader/PhongTextureShader.cpp
+    src/shader/ShadowDepthShader.h
+    src/shader/ShadowDepthShader.cpp
     src/shader/ShaderBase.h
     src/shader/ShaderBase.cpp
     src/shader/ShaderLibrary.h
     src/shader/ShaderLibrary.cpp
-    src/shader/ShadowMapShader.h
-    src/shader/ShadowMapShader.cpp
     src/shader/SHDiffuseShader.h
     src/shader/SHDiffuseShader.cpp
     src/shader/SkyboxShader.h
@@ -165,9 +159,6 @@ add_library(3DEngine STATIC
     src/util/XmlUtils.h
     src/util/XmlUtils.cpp
 
-    # Precompiled header
-    src/stdafx.h
-    src/stdafx.cpp
 )
 
 # Set target properties
@@ -208,10 +199,7 @@ else()
     endif()
 endif()
 
-# Precompiled headers (optional, can improve build times)
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.16)
-    target_precompile_headers(3DEngine PRIVATE src/stdafx.h)
-endif()
+
 
 # Platform-specific definitions
 if(WIN32)

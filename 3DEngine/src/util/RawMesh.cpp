@@ -1,8 +1,8 @@
-#include "stdafx.h"
 
 #include "RawMesh.h"
 
 #include "../math/BoundingBox.h"
+#include "../error.h"
 
 #include <unordered_map>
 
@@ -12,9 +12,9 @@ WavefrontObjMaterial_ptr WavefrontObjMaterial::Create(std::string name)
 }
 
 WavefrontObjMaterial::WavefrontObjMaterial(std::string theName)
-	: opacity(1)
+	: name(theName)
+	, opacity(1)
 	, specularEnabled(true)
-	, name(theName)
 {
 
 }
@@ -80,7 +80,7 @@ bool IndexedRawMesh::ComputeNormals()
 	normals.clear();
 	normals.resize(vertices.size());	
 
-	for (int i = 0; i < faces.size(); i++)
+	for (size_t i = 0; i < faces.size(); i++)
 	{
 		int aIdx = faces[i].v[0][Tri::pos];
 		int bIdx = faces[i].v[1][Tri::pos];
@@ -110,7 +110,7 @@ bool IndexedRawMesh::ComputeNormals()
 	}
 
 	//Normalize normals (unit-length)
-	for (int i = 0; i < normals.size(); i++) {
+	for (size_t i = 0; i < normals.size(); i++) {
 		if (glm::length(normals[i]) > 0)
 			normals[i] = glm::normalize(normals[i]);
 	}
@@ -142,7 +142,7 @@ bool IndexedRawMesh::ComputeTangents()
 	bitangents.resize(vertices.size());
 
 	//Accumulate tangent directions
-	for (int i = 0; i < faces.size(); i++)
+	for (size_t i = 0; i < faces.size(); i++)
 	{
 		auto& v1Idx = faces[i].v[0];
 		auto& v2Idx = faces[i].v[1];
@@ -197,7 +197,7 @@ bool IndexedRawMesh::ComputeTangents()
 	}
 
 	//Orthogonalize and normalize
-	for (int i = 0; i < vertices.size(); i++)
+	for (size_t i = 0; i < vertices.size(); i++)
 	{
 		const glm::vec3& n = normals[i];
 		const glm::vec3& t = tangents_tmp[i];
@@ -242,8 +242,6 @@ OpenGLRawMesh_ptr IndexedRawMesh::ConvertToOpenGLMesh() const
 
 	std::unordered_map<int, std::unordered_map<int, int> > hash_idx_table;
 
-	int duplicates = 0;
-
 	for (auto& t : faces)
 	{
 		for (int i = 0; i < 3; i++)
@@ -263,7 +261,6 @@ OpenGLRawMesh_ptr IndexedRawMesh::ConvertToOpenGLMesh() const
 				{
 					found = true;
 					current_index = hit2->second;
-					duplicates++;
 				}
 			}
 
@@ -271,10 +268,10 @@ OpenGLRawMesh_ptr IndexedRawMesh::ConvertToOpenGLMesh() const
 			{
 				gl_mesh->vertices.push_back(vertices[pos_idx]);
 
-				if (uv_idx >= 0 && texCoords.size() > uv_idx)
+				if (uv_idx >= 0 && texCoords.size() > static_cast<size_t>(uv_idx))
 					gl_mesh->texCoords.push_back(texCoords[uv_idx]);
 
-				if (normal_idx >= 0 && normals.size() > normal_idx)
+				if (normal_idx >= 0 && normals.size() > static_cast<size_t>(normal_idx))
 					gl_mesh->normals.push_back(normals[normal_idx]);
 
 				current_index = static_cast<int>(gl_mesh->vertices.size() - 1);
@@ -307,7 +304,7 @@ bool OpenGLRawMesh::ComputeNormals()
 	normals.clear();
 	normals.resize(vertices.size());
 
-	for (int i = 0; i < triangleIndices.size(); i=i+3)
+	for (size_t i = 0; i < triangleIndices.size(); i=i+3)
 	{
 		int& aIdx = triangleIndices[i];
 		int& bIdx = triangleIndices[i + 1];
@@ -332,7 +329,7 @@ bool OpenGLRawMesh::ComputeNormals()
 	}
 
 	//Normalize normals (unit-length)
-	for (int i = 0; i < normals.size(); i++) {
+	for (size_t i = 0; i < normals.size(); i++) {
 		if (glm::length(normals[i]) > 0)
 			normals[i] = glm::normalize(normals[i]);
 	}
@@ -364,7 +361,7 @@ bool OpenGLRawMesh::ComputeTangents()
 	bitangents.resize(vertices.size());
 
 	//Accumulate tangent directions
-	for (int i = 0; i < triangleIndices.size(); i=i+3)
+	for (size_t i = 0; i < triangleIndices.size(); i=i+3)
 	{
 		auto& v1Idx = triangleIndices[i];
 		auto& v2Idx = triangleIndices[i+1];
@@ -419,7 +416,7 @@ bool OpenGLRawMesh::ComputeTangents()
 	}
 
 	//Orthogonalize and normalize
-	for (int i = 0; i < vertices.size(); i++)
+	for (size_t i = 0; i < vertices.size(); i++)
 	{
 		const glm::vec3& n = normals[i];
 		const glm::vec3& t = tangents_tmp[i];

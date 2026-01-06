@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #include "Util.h"
 #include "RawMesh.h"
@@ -33,7 +32,6 @@ unsigned long Util::GetFileLength(std::ifstream& file)
 {
 	if(!file.good()) return 0;
 
-	unsigned long pos=(unsigned long)file.tellg();
 	file.seekg(0,std::ios::end);
 	unsigned long len = (unsigned long)file.tellg();
 	file.seekg(std::ios::beg);
@@ -53,31 +51,38 @@ std::string Util::LoadTextFile(const std::filesystem::path& path)
 
 std::string Util::LoadTextFile(char* filename)
 {
+	std::cout << "[File] Loading: " << filename << std::endl;
 	std::ifstream file;
 	file.open(filename, std::ios::in);
 
 	if(file.is_open())
 		{
+		std::cout << "[File] File opened successfully" << std::endl;
 		unsigned long len = GetFileLength(file);
+		std::cout << "[File] File length: " << len << std::endl;
 
 		std::string shaderSource(len, ' ');
+		std::cout << "[File] String created with size " << len << std::endl;
 
-		shaderSource[len] = 0;
+		// shaderSource[len] = 0;  // REMOVED: Out of bounds access - std::string is already null-terminated
 		unsigned int i=0;
-		while (file.good())
+		while (file.good() && i < len)
 		{
 			shaderSource[i] = file.get(); // get character from file.
 			if (!file.eof())
 				i++;
 		}
 
+		std::cout << "[File] Read " << i << " characters" << std::endl;
 		file.close();
 
-		return std::move(std::string(shaderSource.begin(), shaderSource.begin()+i));
+		std::cout << "[File] Creating return string..." << std::endl;
+		return std::string(shaderSource.begin(), shaderSource.begin()+i);
 	}
 
+	std::cout << "[File] Failed to open file" << std::endl;
 	return std::string();
-	
+
 }
 
 void Util::PrintStrings(const std::vector<string> strings)

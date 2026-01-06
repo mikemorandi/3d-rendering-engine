@@ -26,7 +26,7 @@ public:
 	RenderMesh(const OpenGLRawMesh_ptr& rawMesh);
 
 	virtual void Render(const Scene_ptr& scene) const override;
-	virtual void RenderShadowMap(const ShadowMapShader_ptr&) const override;
+	virtual void RenderGeometry(const ShaderBase_ptr& shader) const override;
 	virtual void Init() override; 
 
 	typedef std::pair<int, int> IntPair;
@@ -84,5 +84,6 @@ protected:
 
 	std::array<bool,6>						vtxAttribSet;
 	bool									initialized;
+	size_t									vertexCount;
 };
 

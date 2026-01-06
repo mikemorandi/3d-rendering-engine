@@ -46,7 +46,7 @@ include(CTest)
 
 # Add subdirectories
 add_subdirectory(3DEngine)
-add_subdirectory("Graphics Playground")
+add_subdirectory("graphics-playground")
 
 # Print configuration summary
 message(STATUS "")

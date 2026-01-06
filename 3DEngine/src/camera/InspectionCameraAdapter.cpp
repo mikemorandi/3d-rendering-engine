@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #include "InspectionCameraAdapter.h"
 
@@ -25,9 +24,8 @@ InspectionCameraAdapter::~InspectionCameraAdapter(void)
 }
 
 
-void InspectionCameraAdapter::OnMouseMove(const glm::vec2& position)
+void InspectionCameraAdapter::OnMouseMove([[maybe_unused]] const glm::vec2& position)
 {
-	
 }
 
 void InspectionCameraAdapter::OnMouseDrag(const glm::vec2& screen_pos)
@@ -55,7 +53,7 @@ void InspectionCameraAdapter::OnMouseDrag(const glm::vec2& screen_pos)
 			//Transform camera position
 			glm::vec3 new_pos = glm::vec3(transform_mat * glm::vec4(frustum.position, 1.0f));
 			glm::vec3 new_up  = glm::vec3(transform_mat * glm::vec4(frustum.frame.Up(), 0.0f));
-			glm::vec3 new_dir = glm::vec3(transform_mat * glm::vec4(frustum.frame.ViewDir(), 0.0f));
+				// glm::vec3 new_dir = glm::vec3(transform_mat * glm::vec4(frustum.frame.ViewDir(), 0.0f));
 	
 			frustum.frame.Up() = new_up;
 			frustum.frame.ViewDir() = glm::normalize(orbitCenter-new_pos);
@@ -98,7 +96,7 @@ void InspectionCameraAdapter::OnMouseWheel(Input::Direction direction, const glm
 
 	float len = glm::length(dir);
 
-	if(len <= frustum.nearPlane && up || len >= frustum.farPlane && !up)
+	if((len <= frustum.nearPlane && up) || (len >= frustum.farPlane && !up))
 		return;
 	
 	dir = glm::normalize(dir) * 0.1f * (up ? 1.0f : -1.0f);

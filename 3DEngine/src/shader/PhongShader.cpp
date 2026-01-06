@@ -1,70 +1,155 @@
-#include "stdafx.h"
 #include "PhongShader.h"
-#include "../camera/Camera.h"
+#include "../materials/Material.h"
 #include "../scene/Scene.h"
-#include "../light/PointLight.h"
-#include "../light/SpotLight.h"
+#include "../camera/Camera.h"
+#include "../light/LightModel.h"
 #include "../light/DirectionalLight.h"
-#include "../light/Shadow.h"
+#include "../light/SpotLight.h"
 #include "../shape/Skybox.h"
-#include "../texture/Texture3D.h"
 #include "../texture/CubeMapTexture.h"
 #include "../texture/DepthTexture.h"
-#include "../materials/Material.h"
+#include "../texture/Texture2D.h"
 #include "UniformBuffer.h"
 
-#include <algorithm>   
-#include <numeric>
+#include <algorithm>
+#include <string>
+
+// Texture unit assignments for material textures
+// These start after shadow maps (which can use up to 10 units: 1 env + 1 dummy + 1 dir + 8 spot)
+static const int TEX_UNIT_ALBEDO = 11;
+static const int TEX_UNIT_BUMPMAP = 12;
+static const int TEX_UNIT_SPECULAR = 13;
 
 PhongShader::PhongShader()
-: PhongShader("phongShader")
+: MaterialShader("phongShader")
+, m_DummyTexture(0)
+, m_DummyCubeMap(0)
 {
-
-}
-
-PhongShader::PhongShader(const std::string& shaderName)
-: MaterialShader(shaderName)
-, hasShadows(true)
-, useShadows(true)
-, pcfShadows(true)
-{	
+	// We need normal matrix, model-view matrix, and model matrix for lighting and environment mapping
+	hasNM = true;
+	hasMVM = true;
 	hasMM = true;
-	Init();
-}
-
-void PhongShader::Init()
-{
-	
 }
 
 PhongShader::~PhongShader()
 {
+	if (m_DummyTexture != 0)
+	{
+		glDeleteTextures(1, &m_DummyTexture);
+	}
+	if (m_DummyCubeMap != 0)
+	{
+		glDeleteTextures(1, &m_DummyCubeMap);
+	}
 }
 
-bool PhongShader::SetMaterial(const Material_cptr& material)
+void PhongShader::EnsureDummyTextureExists()
 {
-	if (PhongMaterial_cptr pm = std::dynamic_pointer_cast<const PhongMaterial>(material))
+	if (m_DummyTexture == 0)
 	{
-		this->material = pm;
-		return true;
+		// Create a 1x1 white dummy texture for unused 2D samplers
+		glGenTextures(1, &m_DummyTexture);
+		glBindTexture(GL_TEXTURE_2D, m_DummyTexture);
+		
+		unsigned char white[4] = {255, 255, 255, 255};
+		glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_RGBA), 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(GL_NEAREST));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(GL_NEAREST));
+		
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	
+	if (m_DummyCubeMap == 0)
+	{
+		// Create a 1x1 dummy cube map for unused cube samplers
+		glGenTextures(1, &m_DummyCubeMap);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_DummyCubeMap);
+		
+		unsigned char black[4] = {0, 0, 0, 255};
+		for (int face = 0; face < 6; face++)
+		{
+			glTexImage2D(static_cast<GLenum>(static_cast<int>(GL_TEXTURE_CUBE_MAP_POSITIVE_X) + face), 
+			             0, static_cast<GLint>(GL_RGBA), 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, black);
+		}
+		
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(GL_NEAREST));
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(GL_NEAREST));
+		
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	}
+}
+
+void PhongShader::SetupMaterialTextures()
+{
+	// Initialize texture uniforms to dummy texture for validation
+	glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + TEX_UNIT_ALBEDO));
+	glBindTexture(GL_TEXTURE_2D, m_DummyTexture);
+	SetUniform("AlbedoTex", TEX_UNIT_ALBEDO);
+
+	glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + TEX_UNIT_BUMPMAP));
+	glBindTexture(GL_TEXTURE_2D, m_DummyTexture);
+	SetUniform("BumpmapTex", TEX_UNIT_BUMPMAP);
+
+	glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + TEX_UNIT_SPECULAR));
+	glBindTexture(GL_TEXTURE_2D, m_DummyTexture);
+	SetUniform("SpecularTex", TEX_UNIT_SPECULAR);
+
+	// Default: no textures
+	bool hasAlbedo = false;
+	bool hasBump = false;
+	bool hasSpecular = false;
+	bool bumpIsNormalMap = false;
+
+	if (textureMaterial)
+	{
+		// Bind albedo texture
+		if (textureMaterial->albedoTexture)
+		{
+			textureMaterial->albedoTexture->BindTexture(TEX_UNIT_ALBEDO);
+			hasAlbedo = true;
+		}
+
+		// Bind bump/normal texture
+		if (textureMaterial->bumpTexture)
+		{
+			textureMaterial->bumpTexture->BindTexture(TEX_UNIT_BUMPMAP);
+			hasBump = true;
+			bumpIsNormalMap = textureMaterial->bumpBumpTexIsNormalMap;
+		}
+
+		// Bind specular texture
+		if (textureMaterial->specularTexture)
+		{
+			textureMaterial->specularTexture->BindTexture(TEX_UNIT_SPECULAR);
+			hasSpecular = true;
+		}
 	}
 
-	return false;
+	// Set texture presence flags
+	SetUniform("HasAlbedoMap", hasAlbedo);
+	SetUniform("HasBumpMap", hasBump);
+	SetUniform("HasSpecularMap", hasSpecular);
+	SetUniform("BumpTexIsNormalMap", bumpIsNormalMap);
 }
 
 bool PhongShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
 {
+	// Call base class to activate shader and set up matrices
 	bool ok = MaterialShader::Use(scene, modelTransform);
 
-	if (material)
+	// Set material properties using MaterialInfo struct
+	if (phongMaterial)
 	{
-		SetUniform("Material.AmbientReflectivity", material->ambientReflection);
-		SetUniform("Material.DiffuseReflectivity", material->diffuseReflection);
-		SetUniform("Material.SpecularReflectivity", material->glossyReflection);
-		SetUniform("Material.Shininess", material->shininess);
-		SetUniform("Material.Opacity", material->opacity);
+		SetUniform("Material.Color", phongMaterial->color);
+		SetUniform("Material.Shininess", phongMaterial->shininess);
+		SetUniform("Material.Ka", phongMaterial->ambientReflect);
+		SetUniform("Material.Kd", phongMaterial->diffuseReflect);
+		SetUniform("Material.Ks", phongMaterial->glossyReflect);
+		SetUniform("Material.Opacity", phongMaterial->opacity);
 
-		if (material->opacity < 1.0)
+		// Enable blending for transparent materials
+		if (phongMaterial->opacity < 1.0f)
 		{
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -72,12 +157,18 @@ bool PhongShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
 		}
 	}
 	else
-		ok = false;
-
-
-	if(scene->skybox)
 	{
-		const int skymap_tex_unit = 0;
+		ok = false;
+	}
+
+	// Ensure dummy textures exist for validation
+	EnsureDummyTextureExists();
+	
+	// Set up environment map if skybox exists
+	int textureUnit = 0;
+	if (scene->skybox)
+	{
+		const int skymap_tex_unit = textureUnit;
 
 		if (auto sbm = std::dynamic_pointer_cast<SkyboxMaterial>(scene->skybox->Material()))
 		{
@@ -85,10 +176,105 @@ bool PhongShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
 			SetUniform("EnvMap.Exists", static_cast<bool>(scene->skybox));
 			SetUniform("EnvMap.CubeTexture", skymap_tex_unit);
 			SetUniform("CameraPosWorld", scene->activeCamera->CameraFrustum().position);
+			textureUnit++;
 		}
 	}
+	else
+	{
+		// Bind dummy cube map to texture unit 0 for validation
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_DummyCubeMap);
+		SetUniform("EnvMap.Exists", false);
+		SetUniform("EnvMap.CubeTexture", 0);
+		textureUnit++;  // Reserve unit 0 even when unused
+	}
 
-	SetLightAndModel(scene,1);
+	// Set up shadow maps
+	// Reserve a texture unit for "unused" shadow maps (required by OpenGL validation)
+	const int dummyShadowUnit = textureUnit++;
+	
+	// Ensure we have a dummy texture and bind it to the dummy unit
+	EnsureDummyTextureExists();
+	glActiveTexture(static_cast<GLenum>(static_cast<int>(GL_TEXTURE0) + dummyShadowUnit));
+	glBindTexture(GL_TEXTURE_2D, m_DummyTexture);
+	
+	// Initialize all shadow map samplers to the dummy unit first
+	// This ensures OpenGL validation passes even for unused samplers
+	SetUniform("ShadowMap_DirectionalLight", dummyShadowUnit);
+	for (int i = 0; i < 8; i++)
+	{
+		std::string uniformName = "ShadowMaps_SpotLights[" + std::to_string(i) + "]";
+		SetUniform(uniformName.c_str(), dummyShadowUnit);
+	}
+	
+	if (scene->lightModel)
+	{
+		// Bind directional light shadow map
+		if (scene->lightModel->directionalLight &&
+		    scene->lightModel->directionalLight->CastsShadows())
+		{
+			auto shadowMap = scene->lightModel->directionalLight->GetShadowMap();
+			if (shadowMap)
+			{
+				shadowMap->BindTexture(textureUnit);
+				shadowMap->SetCompareMode(DepthTexture::CompareMode::RefToTexture);
+
+				SetUniform("ShadowMap_DirectionalLight", textureUnit);
+				SetUniform("DirectionalLightCastsShadows", true);
+				SetUniform("LightSpaceMatrix_DirectionalLight",
+				           scene->lightModel->directionalLight->GetLightSpaceMatrix());
+				textureUnit++;
+			}
+			else
+			{
+				SetUniform("DirectionalLightCastsShadows", false);
+			}
+		}
+		else
+		{
+			SetUniform("DirectionalLightCastsShadows", false);
+		}
+
+		// Bind spotlight shadow maps
+		int numShadowSpotLights = 0;
+		for (size_t i = 0; i < scene->lightModel->spotLights.size() && i < 8; i++)
+		{
+			if (scene->lightModel->spotLights[i]->CastsShadows())
+			{
+				auto shadowMap = scene->lightModel->spotLights[i]->GetShadowMap();
+				if (shadowMap)
+				{
+					shadowMap->BindTexture(textureUnit);
+					shadowMap->SetCompareMode(DepthTexture::CompareMode::RefToTexture);
+
+					std::string uniformName = "ShadowMaps_SpotLights[" + std::to_string(i) + "]";
+					SetUniform(uniformName.c_str(), textureUnit);
+
+					uniformName = "LightSpaceMatrix_SpotLights[" + std::to_string(i) + "]";
+					SetUniform(uniformName.c_str(), scene->lightModel->spotLights[i]->GetLightSpaceMatrix());
+
+					textureUnit++;
+					numShadowSpotLights++;
+				}
+			}
+		}
+		SetUniform("NumShadowCastingSpotLights", numShadowSpotLights);
+
+		// Shadow parameters
+		SetUniform("PCF_SampleRadius", 1);  // 3x3 kernel (9 samples) - good balance of quality/performance
+		SetUniform("ShadowBias", 0.005f);   // configurable
+	}
+	else
+	{
+		SetUniform("DirectionalLightCastsShadows", false);
+		SetUniform("NumShadowCastingSpotLights", 0);
+	}
+
+	// Set up material textures
+	SetupMaterialTextures();
+
+	// Set up lighting
+	SetLightAndModel(scene);
 
 	return ok;
 }
@@ -96,94 +282,80 @@ bool PhongShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
 void PhongShader::UnUse()
 {
 	MaterialShader::UnUse();
-	glDisable(GL_BLEND); // TODO: WTF?
+
+	// Reset blending state
+	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
-}
 
-void PhongShader::SetLightAndModel(const Scene_ptr& scene, const unsigned int tex_unit_offset)
-{
-	LightModel_ptr lightModel = scene->lightModel;
-
-	size_t num_slights = lightModel->spotLights.size();
-
-	//set lights
-	SetUniform("NumPointLights", (int)lightModel->pointLights.size());
-	SetUniform("NumSpotLights", static_cast<int>(num_slights));
-	SetUniform("HasDirectionalLight", static_cast<bool>(lightModel->directionalLight));
-	SetUniform("HasAmbientLight", static_cast<bool>(lightModel->ambientLight));	
-
-	unsigned int current_tex_unit = tex_unit_offset;
-
-	bool dithering = material && material->dither && lightModel->ditherData;
-	SetUniform("UseDiterhing", dithering);
-
-	if (dithering)
+	// Unbind material textures
+	if (textureMaterial)
 	{
-		lightModel->ditherData->BindTexture(current_tex_unit);
-		SetUniform("DitherMap", current_tex_unit);
-		current_tex_unit++;
-	}
-
-	const size_t maxNumSpotLights = 8;
-	GLint spotlightShadowMaps[maxNumSpotLights];
-	std::iota(std::begin(spotlightShadowMaps), std::end(spotlightShadowMaps), current_tex_unit);
-	GLint dirLightShadowMap;
-	bool dirLightShadowMapPresent = false;
-
-	for (unsigned int i = 0; i < std::min(maxNumSpotLights, num_slights); i++)
-	{
-		auto sl = lightModel->spotLights[i];
-		sl->Shadow()->ShadowMap()->BindTexture(current_tex_unit++);
-	}
-
-	if (auto dl = lightModel->directionalLight)
-	{
-		dirLightShadowMap = current_tex_unit;
-		dirLightShadowMapPresent = true;
-		dl->Shadow()->ShadowMap()->BindTexture(dirLightShadowMap);
-		current_tex_unit++;
-	}
-
-	bool hasSpotLights = lightModel->spotLights.size() > 0;
-
-	if (hasShadows && (hasSpotLights || lightModel->directionalLight) )
-	{
-		SetUniform("UseShadows", useShadows);
-
-		if (useShadows)
+		if (textureMaterial->albedoTexture)
 		{
-			if (lightModel->pcfShadowRandomData)
-			{
-				SetUniform("PcfShadows", pcfShadows);
-
-				lightModel->pcfShadowRandomData->BindTexture(++current_tex_unit);
-
-				auto pcfDim = lightModel->pcfShadowRandomData->Dimensions();
-
-				glm::ivec2 sdims;
-
-				if (hasSpotLights)
-					sdims = lightModel->spotLights[0]->Shadow()->ShadowMap()->Dimensions();
-				else if (lightModel->directionalLight)
-					sdims = lightModel->directionalLight->Shadow()->ShadowMap()->Dimensions();
-				
-				const float pixelBlur = pcfDim.x / static_cast<float>(sdims.x);
-
-				if (pcfShadows)
-				{
-					SetUniform("PCFDataOffsetsSize", pcfDim);
-					SetUniform("PCFDataOffsets", current_tex_unit);
-					SetUniform("PCFBlurRadius", pixelBlur);
-				}
-			}
-
-			SetUniformArray("ShadowMapArray", spotlightShadowMaps, 1, maxNumSpotLights);
-
-			if(dirLightShadowMapPresent)
-				SetUniform("ShadowMapDirectional", dirLightShadowMap);
-			
+			glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + TEX_UNIT_ALBEDO));
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		if (textureMaterial->bumpTexture)
+		{
+			glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + TEX_UNIT_BUMPMAP));
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		if (textureMaterial->specularTexture)
+		{
+			glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + TEX_UNIT_SPECULAR));
+			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
+}
 
-	lightModel->GetLightsBuffer()->BindToShader(shared_from_this(),"Lights");
+void PhongShader::SetLightAndModel(const Scene_ptr& scene)
+{
+	// Set up scene lights
+	if (scene && scene->lightModel)
+	{
+		LightModel_ptr lightModel = scene->lightModel;
+
+		// Set light counts
+		SetUniform("NumPointLights", static_cast<int>(lightModel->pointLights.size()));
+		SetUniform("NumSpotLights", static_cast<int>(lightModel->spotLights.size()));
+		SetUniform("HasDirectionalLight", static_cast<bool>(lightModel->directionalLight));
+		SetUniform("HasAmbientLight", static_cast<bool>(lightModel->ambientLight));
+
+		// Bind the lights uniform buffer
+		// This must be done AFTER the shader program is activated (which happens in MaterialShader::Use())
+		if (auto lightsBuffer = lightModel->GetLightsBuffer())
+		{
+			lightsBuffer->BindToShader(shared_from_this(), "Lights");
+		}
+	}
+	else
+	{
+		// No lights in scene - shader will use fixed fallback light
+		SetUniform("NumPointLights", 0);
+		SetUniform("NumSpotLights", 0);
+		SetUniform("HasDirectionalLight", false);
+		SetUniform("HasAmbientLight", false);
+	}
+}
+
+bool PhongShader::SetMaterial(const Material_cptr& material)
+{
+	// Clear previous material references
+	phongMaterial = nullptr;
+	textureMaterial = nullptr;
+
+	// Try to cast to the most specific type first (TextureMaterial inherits from PhongMaterial)
+	if (TextureMaterial_cptr mat = std::dynamic_pointer_cast<const TextureMaterial>(material))
+	{
+		textureMaterial = mat;
+		phongMaterial = mat;
+		return true;
+	}
+	else if (PhongMaterial_cptr mat = std::dynamic_pointer_cast<const PhongMaterial>(material))
+	{
+		phongMaterial = mat;
+		return true;
+	}
+
+	return false;
 }

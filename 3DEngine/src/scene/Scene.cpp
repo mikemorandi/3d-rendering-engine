@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #include "Scene.h"
 
@@ -15,15 +14,13 @@
 
 #include "../camera/Camera.h"
 #include "../shader/ShaderBase.h"
-#include "../shader/ShadowMapShader.h"
 #include "../shape/Shape.h"
 #include "../shape/Skybox.h"
 #include "../shape/WireCube.h"
-#include "../light/lightModel.h"
+#include "../light/LightModel.h"
 #include "../light/PointLight.h"
 #include "../light/DirectionalLight.h"
 #include "../light/SpotLight.h"
-#include "../light/Shadow.h"
 #include "../texture/Framebuffer.h"
 #include "../texture/DepthTexture.h"
 
@@ -43,8 +40,7 @@ Scene_ptr Scene::Create(const Camera_ptr& cam, bool has_frambufer)
 }
 
 Scene::Scene(const Camera_ptr& cam,bool has_frambufer)
-	: shadowShader(ShadowMapShader::Create())
-	, renderLightRepresentation(false)
+	: renderLightRepresentation(false)
 	, renderBoundingBoxes(false)
 {
 
@@ -94,13 +90,6 @@ Scene::~Scene()
 
 void Scene::UpdateLightBboxes()
 {
-	auto bb = BoundingBox();
-
-	for (auto& sl : lightModel->spotLights)
-		sl->SetSceneBoundingBox(bb);
-
-	if (auto& dl = lightModel->directionalLight)
-		dl->SetSceneBoundingBox(bb);
 }
 
 void Scene::AddShape(const Shape_ptr& shape)
@@ -120,65 +109,9 @@ void Scene::SetSkybox(const Skybox_ptr& skybox)
 	this->skybox = skybox;
 }
 
-void Scene::RenderShadowMaps()
-{
-	if (framebuffer)
-	{
-		framebuffer->Bind();
-		{
-			glClearDepth(1);
-
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_FRONT);
-
-			auto renderShadowMap = [this](Shadow_ptr smap)
-			{
-				auto smapTex = smap->ShadowMap();
-				framebuffer->Attach(smapTex, Framebuffer::Attachment::Depth);
-				framebuffer->SetDrawToColorBufferEnabled(false);
-
-				glClear(GL_DEPTH_BUFFER_BIT);
-
-				const glm::ivec2& smapDim = smapTex->Dimensions();
-				glViewport(0, 0, smapDim.x, smapDim.y);
-
-				shadowShader->SetLightMatrix(smap->LightViewProjectionMatrix());
-
-				for (Shape_ptr& s : objects)
-				{
-					if (shadowShader->Use(shared_from_this(), s->WorldTransform()))
-					{
-						s->RenderShadowMap(shadowShader);
-					}
-				}
-			};
-
-			//Generate shadow maps
-			for (auto& sl : lightModel->spotLights)
-			{
-				if (Shadow_ptr smap = sl->Shadow())
-					renderShadowMap(smap);
-			}
-
-			if (lightModel->directionalLight)
-			{
-				if (Shadow_ptr smap = lightModel->directionalLight->Shadow())
-					renderShadowMap(smap);
-			}
-
-		}
-		shadowShader->UnUse();
-		framebuffer->Unbind();
-
-		glCullFace(GL_BACK);
-		glDisable(GL_CULL_FACE);
-	};
-}
 
 void Scene::Render(const Viewport_ptr& viewport)
-{		
-	RenderShadowMaps();
-	
+{
 	viewport->Apply();
 
 	//Render skybox
@@ -225,16 +158,7 @@ void Scene::Render(const Viewport_ptr& viewport)
 
 		for (auto& sh : objects)
 		{
-			auto bbox = sh->BoundingBox();			
-			auto tmat = glm::translate(glm::mat4(1.f), bbox.p);
-			auto smat = glm::scale(tmat, bbox.d);
-			wireCube->SetWorldTransform(smat);
-			wireCube->Render(shared_from_this());
-		}
-
-		if(lightModel->directionalLight)
-		{
-			auto bbox = lightModel->directionalLight->SceneBoundingBox();
+			auto bbox = sh->BoundingBox();
 			auto tmat = glm::translate(glm::mat4(1.f), bbox.p);
 			auto smat = glm::scale(tmat, bbox.d);
 			wireCube->SetWorldTransform(smat);
@@ -248,8 +172,8 @@ void Scene::Render(const Viewport_ptr& viewport)
 
 void Scene::TimeUpdate(double time)
 {
+	(void)time;  // Animation is frame-based, not time-based
 	//Animate lights
-	int numPLs = (int)lightModel->spotLights.size();
 	SpotLight_ptr pl;
 	
 	auto rotate_light = [](SpotLight_ptr& sl, float radians, const glm::vec3& axis)
@@ -261,7 +185,7 @@ void Scene::TimeUpdate(double time)
 		sl->SetDirection(newDir);
 	};
 
-	for (int i = 0; i < std::min(lightAnimParams.size(), lightModel->spotLights.size()); i++)
+	for (size_t i = 0; i < std::min(lightAnimParams.size(), lightModel->spotLights.size()); i++)
 	{
 		if (lightModel->spotLights[i]->Animated())
 			rotate_light(lightModel->spotLights[i], lightAnimParams[i].radiansPerInterval, lightAnimParams[i].rotationAxis);
@@ -292,14 +216,11 @@ void Scene::AddLight(const PointLight_ptr& light)
 void Scene::AddLight(const SpotLight_ptr& light)
 {
 	lightModel->spotLights.push_back(light);
-	light->SetSceneBoundingBox(BoundingBox());
 }
 
 void Scene::SetLight(const DirectionalLight_ptr& light)
 {
 	lightModel->directionalLight = light;
-	lightModel->directionalLight->SetSceneBoundingBox(BoundingBox());
-	lightModel->directionalLight->SetCamera(activeCamera);
 }
 
 void Scene::SetLight(const AmbientLight_ptr& light)
@@ -338,6 +259,4 @@ void Scene::SetRenderLightRepresentation(bool enable)
 
 void Scene::CameraChanged()
 {
-	if(lightModel->directionalLight)
-		lightModel->directionalLight->UpdateShadow();
 }

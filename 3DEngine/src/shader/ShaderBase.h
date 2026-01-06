@@ -28,6 +28,9 @@ public:
 
 	virtual ~ShaderBase();
 
+	// Bring base class Use() into scope to avoid hiding
+	using GLSLProgram::Use;
+
 	/* \brief Queries the shader for the channel ids
 	*  \return the channel id for the specified vertex attribute, -1 for inexisting attrib */
 	GLint GetAttributeChannel(GLSLShader::VertexAttribute attribute);

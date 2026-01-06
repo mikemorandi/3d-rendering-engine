@@ -15,7 +15,6 @@ struct DirectionalLight
 {
 	vec3 Direction;
 	vec3 Color;
-	mat4 ShadowMatrix;
 };
 
 //PointLight declaration
@@ -26,7 +25,6 @@ struct SpotLight
 	vec3 Direction;
 	float CutoffAngle;
 	float Exponent;
-	mat4 ShadowMatrix;
 };
 
 // ----------------- uniforms -----------------

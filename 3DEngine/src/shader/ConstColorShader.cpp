@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "ConstColorShader.h"
 #include "../materials/Material.h"
 

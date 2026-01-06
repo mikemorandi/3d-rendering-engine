@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Material.h"
 
 #include "../util/RawMesh.h"
@@ -36,26 +35,33 @@ std::string Material::Name()
 }
 
 PhongMaterial::PhongMaterial()
-: shininess(1)
-, opacity(1)
-, dither(false)
+: color(1.0f, 1.0f, 1.0f)
+, ambientReflect(1.0f)
+, diffuseReflect(0.7f)
+, glossyReflect(0.5f)
+, shininess(32.0f)
+, opacity(1.0f)
 {
 
 }
 
 void PhongMaterial::InitFromWavefrontMaterial(const WavefrontObjMaterial_cptr& mat, const std::filesystem::path& base_folder)
 {
+	(void)base_folder;  // PhongMaterial doesn't use textures, but derived classes might
 	name = mat->name;
-	ambientReflection = mat->ambient;
-	diffuseReflection = mat->diffuse;
-	glossyReflection = mat->specular;
-	shininess = static_cast<int>(mat->shininess);
+	// Use diffuse color as the base color
+	color = mat->diffuse;
+	// Compute scalar coefficients from vec3 (average of RGB)
+	ambientReflect = (mat->ambient.r + mat->ambient.g + mat->ambient.b) / 3.0f;
+	diffuseReflect = (mat->diffuse.r + mat->diffuse.g + mat->diffuse.b) / 3.0f;
+	glossyReflect = (mat->specular.r + mat->specular.g + mat->specular.b) / 3.0f;
+	shininess = mat->shininess;
 	opacity = mat->opacity;
 }
 
 bool PhongMaterial::IsTransparent() const
 {
-	return opacity != 1;
+	return opacity != 1.0f;
 }
 
 void TextureMaterial::InitFromWavefrontMaterial(const WavefrontObjMaterial_cptr& mat, const std::filesystem::path& base_folder)

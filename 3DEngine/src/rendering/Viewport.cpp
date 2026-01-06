@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Viewport.h"
 #include "../core/gl.h"
 

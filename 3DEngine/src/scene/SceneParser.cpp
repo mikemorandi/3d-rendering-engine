@@ -1,13 +1,14 @@
-#include "stdafx.h"
 #include "SceneParser.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
+#include <sstream>
+#include <iostream>
 #include <filesystem>
 
-#include "../shader/PhongShader.h"
-#include "../shader/PhongTextureShader.h"
+#include "../error.h"
+
 #include "../shader/IntrinsicColorShader.h"
 #include "../shader/SkyboxShader.h"
 #include "../shader/ConstColorShader.h"
@@ -74,7 +75,7 @@ bool SceneParser::Parse(const std::string& xmlDocument)
 			//Camera
 			XMLElement* cameraElement;
 
-			if(cameraElement = root->FirstChildElement("camera"))
+			if((cameraElement = root->FirstChildElement("camera")))
 			{
 				Camera_ptr cam;
 				parseOk &= ParseCamera(cam,cameraElement);
@@ -153,59 +154,40 @@ bool SceneParser::ParseMaterials(XMLElement* materialsGroupElement)
 
 			Material_ptr material;
 
-			if (materialType == "phong")
+			if (materialType == "phongOld")
 			{
-				PhongMaterial_ptr phongMat;
+				// Legacy format - convert vec3 reflection values to scalar coefficients
+				PhongMaterial_ptr phongMat = PhongMaterial::Create();
 				XMLElement* subElem;
 
-				//Load textured version if available
-				if (subElem = materialElement->FirstChildElement("texture"))
-				{					
-					fs::path texFile(subElem->Attribute("file"));
-					Texture2D_ptr albedoTex = Texture2D::Create(Config::TEXTURE_BASE_PATH / texFile);
-
-					TextureMaterial_ptr tm = TextureMaterial::Create();
-					tm->albedoTexture = albedoTex;
-
-					//bump mapping		
-					if (subElem = materialElement->FirstChildElement("bumpMap"))
-					{
-						fs::path bumpMapFile(subElem->Attribute("file"));
-						string type(subElem->Attribute("type"));
-
-						tm->bumpTexture = Texture2D::Create(Config::TEXTURE_BASE_PATH / bumpMapFile);
-						tm->bumpBumpTexIsNormalMap = (type == "normal");
-					}
-
-					//specular mapping				
-					if (subElem = materialElement->FirstChildElement("specularMap"))
-					{
-						fs::path specMapFile(subElem->Attribute("file"));
-						tm->specularTexture = Texture2D::Create(Config::TEXTURE_BASE_PATH / specMapFile);
-					}
-
-					phongMat = tm;
-				}
-				else
+				if ((subElem = materialElement->FirstChildElement("ambientReflect")))
 				{
-					phongMat = PhongMaterial::Create();
+					glm::vec3 ambient;
+					GetColorVector3(subElem, ambient);
+					phongMat->ambientReflect = (ambient.r + ambient.g + ambient.b) / 3.0f;
 				}
 
-				//Load common phong attributes
-				if (subElem = materialElement->FirstChildElement("ambientReflect"))
-					GetColorVector3(subElem, phongMat->ambientReflection);
+				if ((subElem = materialElement->FirstChildElement("diffuseReflect")))
+				{
+					glm::vec3 diffuse;
+					GetColorVector3(subElem, diffuse);
+					phongMat->diffuseReflect = (diffuse.r + diffuse.g + diffuse.b) / 3.0f;
+					phongMat->color = diffuse; // Use diffuse as base color
+				}
 
-				if (subElem = materialElement->FirstChildElement("diffuseReflect"))
-					GetColorVector3(subElem, phongMat->diffuseReflection);
+				if ((subElem = materialElement->FirstChildElement("glossyReflect")))
+				{
+					glm::vec3 glossy;
+					GetColorVector3(subElem, glossy);
+					phongMat->glossyReflect = (glossy.r + glossy.g + glossy.b) / 3.0f;
+				}
 
-				if (subElem = materialElement->FirstChildElement("glossyReflect"))
-					GetColorVector3(subElem, phongMat->glossyReflection);
-
-				if (subElem = materialElement->FirstChildElement("shininess"))
-					GetIntAttrib(subElem, "value", phongMat->shininess);
-
-				if (subElem = materialElement->FirstChildElement("options"))
-					GetBoolAttrib(subElem, "dither" , phongMat->dither);
+				if ((subElem = materialElement->FirstChildElement("shininess")))
+				{
+					int shininessInt;
+					GetIntAttrib(subElem, "value", shininessInt);
+					phongMat->shininess = static_cast<float>(shininessInt);
+				}
 
 				material = phongMat;
 			}
@@ -216,10 +198,82 @@ bool SceneParser::ParseMaterials(XMLElement* materialsGroupElement)
 			else if (materialType == "const")
 			{
 				ConstantColorMaterial_ptr mat = ConstantColorMaterial::Create();
-				
+
 				XMLElement* subElem;
-				if (subElem = materialElement->FirstChildElement("color"))
+				if ((subElem = materialElement->FirstChildElement("color")))
 					GetColorVector3(subElem, mat->color);
+
+				material = mat;
+			}
+			else if (materialType == "phong")
+			{
+				PhongMaterial_ptr mat;
+				XMLElement* subElem;
+
+				// Check if this material has textures - if so, create TextureMaterial
+				if ((subElem = materialElement->FirstChildElement("texture")))
+				{
+					TextureMaterial_ptr texMat = TextureMaterial::Create();
+
+					// Load albedo/diffuse texture
+					fs::path texFile(subElem->Attribute("file"));
+					texMat->albedoTexture = Texture2D::Create(Config::TEXTURE_BASE_PATH / texFile);
+
+					// Load bump/normal map if specified
+					if (XMLElement* bumpElem = materialElement->FirstChildElement("bumpMap"))
+					{
+						fs::path bumpMapFile(bumpElem->Attribute("file"));
+						const char* typeAttr = bumpElem->Attribute("type");
+						std::string type = typeAttr ? typeAttr : "bump";
+
+						texMat->bumpTexture = Texture2D::Create(Config::TEXTURE_BASE_PATH / bumpMapFile);
+						texMat->bumpBumpTexIsNormalMap = (type == "normal");
+					}
+
+					// Load specular map if specified
+					if (XMLElement* specElem = materialElement->FirstChildElement("specularMap"))
+					{
+						fs::path specMapFile(specElem->Attribute("file"));
+						texMat->specularTexture = Texture2D::Create(Config::TEXTURE_BASE_PATH / specMapFile);
+					}
+
+					mat = texMat;
+				}
+				else
+				{
+					mat = PhongMaterial::Create();
+				}
+
+				// Load common phong material properties
+				if ((subElem = materialElement->FirstChildElement("color")))
+					GetColorVector3(subElem, mat->color);
+
+				if ((subElem = materialElement->FirstChildElement("ambientReflect")))
+				{
+					glm::vec3 ambient;
+					GetColorVector3(subElem, ambient);
+					mat->ambientReflect = (ambient.r + ambient.g + ambient.b) / 3.0f;
+				}
+
+				if ((subElem = materialElement->FirstChildElement("diffuseReflect")))
+				{
+					glm::vec3 diffuse;
+					GetColorVector3(subElem, diffuse);
+					mat->diffuseReflect = (diffuse.r + diffuse.g + diffuse.b) / 3.0f;
+				}
+
+				if ((subElem = materialElement->FirstChildElement("glossyReflect")))
+				{
+					glm::vec3 glossy;
+					GetColorVector3(subElem, glossy);
+					mat->glossyReflect = (glossy.r + glossy.g + glossy.b) / 3.0f;
+				}
+
+				if ((subElem = materialElement->FirstChildElement("shininess")))
+					GetFloatAttrib(subElem, "value", mat->shininess);
+
+				if ((subElem = materialElement->FirstChildElement("opacity")))
+					GetFloatAttrib(subElem, "value", mat->opacity);
 
 				material = mat;
 			}
@@ -230,7 +284,7 @@ bool SceneParser::ParseMaterials(XMLElement* materialsGroupElement)
 				bool parse_ok = false;
 
 				XMLElement* subElem;
-				if (subElem = materialElement->FirstChildElement("shcoeffs"))
+				if ((subElem = materialElement->FirstChildElement("shcoeffs")))
 				{
 					if (auto shfile = subElem->Attribute("file"))
 					{
@@ -256,7 +310,7 @@ bool SceneParser::ParseMaterials(XMLElement* materialsGroupElement)
 			material->SetName(materialName);
 			materials.insert(ShaderKeyVal(materialElement->Attribute("name"), material));
 
-		} while (materialElement = materialElement->NextSiblingElement("material"));
+		} while ((materialElement = materialElement->NextSiblingElement("material")));
 	}
 	
 
@@ -268,12 +322,12 @@ bool SceneParser::ParseSkybox(XMLElement* skyboxElem)
 	CubeMapTexture_ptr texture;
 
 	const char* path;
-	if( path = skyboxElem->Attribute("cubeMapFile"))
+	if((path = skyboxElem->Attribute("cubeMapFile")))
 	{
 		//Single file cube map
 		texture.reset(new CubeMapTexture(Config::TEXTURE_BASE_PATH / fs::path(path)));
 	}
-	else if( path = skyboxElem->Attribute("cubeMapFolder") )
+	else if((path = skyboxElem->Attribute("cubeMapFolder")))
 	{
 		//Cube map consisting of 6 files
 		string type = skyboxElem->Attribute("type");
@@ -382,7 +436,7 @@ bool SceneParser::ParseObjects(XMLElement* objects)
 			}
 
 		} 
-		while (objeElem = objeElem->NextSiblingElement());
+		while ((objeElem = objeElem->NextSiblingElement()));
 
 		generated_scene->AddShapes(shapes);
 	}
@@ -441,7 +495,7 @@ bool SceneParser::ParseTransforms(glm::mat4& tMatrix, tinyxml2::XMLElement* tran
 				}
 			}
 
-		} while (transform = transform->NextSiblingElement());
+		} while ((transform = transform->NextSiblingElement()));
 	}
 	else
 		success = false;
@@ -558,7 +612,7 @@ bool SceneParser::ParseLights(tinyxml2::XMLElement* lightsGroupElement)
 				Error("Light " + lightType + " not supported");
 				return false;
 			}
-		} while (lightElem = lightElem->NextSiblingElement("light"));
+		} while ((lightElem = lightElem->NextSiblingElement("light")));
 	}
 	
 	return true;
@@ -596,8 +650,12 @@ bool SceneParser::GetFloatAttrib(XMLElement* element, const char* attribName, fl
 {
 	if(element == nullptr)
 		return false;
-	
-	std::istringstream isstr(element->Attribute(attribName));
+
+	const char* attrValue = element->Attribute(attribName);
+	if(attrValue == nullptr)
+		return false;
+
+	std::istringstream isstr(attrValue);
 	return !(isstr >> value).fail();
 }
 
@@ -605,8 +663,12 @@ bool SceneParser::GetIntAttrib(XMLElement* element, const char* attribName, int&
 {
 	if(element == nullptr)
 		return false;
-	
-	std::istringstream isstr(element->Attribute(attribName));
+
+	const char* attrValue = element->Attribute(attribName);
+	if(attrValue == nullptr)
+		return false;
+
+	std::istringstream isstr(attrValue);
 	return !(isstr >> value).fail();
 }
 

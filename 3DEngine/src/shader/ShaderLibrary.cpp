@@ -1,9 +1,7 @@
-#include "stdafx.h"
 #include "ShaderLibrary.h"
-#include "PhongShader.h"
-#include "PhongTextureShader.h"
 #include "IntrinsicColorShader.h"
 #include "ConstColorShader.h"
+#include "PhongShader.h"
 #include "SHDiffuseShader.h"
 #include "SkyboxShader.h"
 #include "DepthMapShader.h"
@@ -29,14 +27,14 @@ bool ShaderLibrary::AddShader(const Material_cptr& material)
 {
 	if (!ShaderLookup(material))
 	{
-		if (std::dynamic_pointer_cast<const TextureMaterial>(material))
-			return AddShader(material, PhongTextureShader::Create());
-		else if (std::dynamic_pointer_cast<const PhongMaterial>(material))
-			return AddShader(material, PhongShader::Create());
-		else if (std::dynamic_pointer_cast<const IntrinsicColorMaterial>(material))
+		if (std::dynamic_pointer_cast<const IntrinsicColorMaterial>(material))
 			return AddShader(material, IntrinsicColorShader::Create());
 		else if (std::dynamic_pointer_cast<const ConstantColorMaterial>(material))
 			return AddShader(material, ConstColorShader::Create());
+		else if (std::dynamic_pointer_cast<const TextureMaterial>(material))
+			return AddShader(material, PhongShader::Create());
+		else if (std::dynamic_pointer_cast<const PhongMaterial>(material))
+			return AddShader(material, PhongShader::Create());
 		else if (std::dynamic_pointer_cast<const ShDiffuseMaterial>(material))
 			return AddShader(material, ShDiffuseShader::Create());
 		else if (std::dynamic_pointer_cast<const SkyboxMaterial>(material))

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #include "BoundingBox.h"
 #include "Ray.h"
@@ -75,7 +74,7 @@ AABBox AABBox::HullBox(const AABBox & other) const
 
 bool AABBox::Intersect(const Ray & r, float& tmin, float& tmax) const
 {
-	//See "An Efficient and Robust Ray–Box Intersection Algorithm" by Williams et. all
+	//See "An Efficient and Robust Ray-Box Intersection Algorithm" by Williams et. all
 	// http://www.cs.utah.edu/~awilliam/box/box.pdf
 
 	float tymin, tymax, tzmin, tzmax;

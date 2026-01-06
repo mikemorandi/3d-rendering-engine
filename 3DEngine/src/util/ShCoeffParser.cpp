@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "ShCoeffParser.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -6,6 +5,7 @@
 
 #include "../shader/SHDiffuseShader.h"
 #include "../util/XmlUtils.h"
+#include "../error.h"
 
 
 using tinyxml2::XMLDocument;
@@ -42,7 +42,7 @@ ShDiffuseShaderCoeffs_ptr ShCoeffParser::Parse(const std::string& coeffXmlDocume
 				XmlUtils::GetColorVector3(vecElement,v);
 				shCoeffs->m_Coeffs.push_back(v);
 			}				
-			while (vecElement = vecElement->NextSiblingElement("vec3"));
+			while ((vecElement = vecElement->NextSiblingElement("vec3")));
 
 			
 

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Skybox.h"
 #include "../texture/CubeMapTexture.h"
 #include "../materials/Material.h"

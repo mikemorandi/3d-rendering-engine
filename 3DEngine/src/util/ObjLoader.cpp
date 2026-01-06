@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #include "ObjLoader.h"
 #include "RawMesh.h"
@@ -22,8 +21,6 @@ namespace fs = std::filesystem;
 
 IndexedRawMesh_ptr ObjLoader::LoadObj(std::istream& istr, const std::filesystem::path& path)
 {	
-	int lineCount = 0;
-
 	IndexedRawMesh_ptr newMesh = IndexedRawMesh::Create();
 	newMesh->meshPath = path.string();
 
@@ -58,7 +55,6 @@ IndexedRawMesh_ptr ObjLoader::LoadObj(std::istream& istr, const std::filesystem:
 	{
 		std::getline(istr,line);
 		auto num_chars = line.size();
-		lineCount++;
 
 		if (line[0] == 'o' && num_chars > 2)
 		{

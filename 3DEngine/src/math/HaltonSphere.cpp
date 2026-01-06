@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 
 #include "HaltonSphere.h"
@@ -13,9 +12,8 @@
 void HaltonSphere::GenerateRays(std::vector<glm::vec3> &points, int p2/*=7*/)
 {		
 	float p, t, st, phi, phirad, ip;
-	int k, kk, pos, a;
-
-	for (k=0, pos=0 ; k < points.size() ; k++)
+	int k, kk, a;
+	for (k=0 ; k < static_cast<int>(points.size()) ; k++)
 	{
 		t = 0;
 		for (p=0.5, kk=k ; kk ; p*=0.5f, kk>>=1)
@@ -40,12 +38,12 @@ void ShuffleRays(std::vector<glm::vec3>& rays)
 {
 	std::mt19937 rng;
 	rng.seed(clock());
-	std::uniform_real_distribution<float> distribution;(0,2*glm::pi<float>());  
+	std::uniform_real_distribution<float> distribution(0, 2*glm::pi<float>());  
 		
 	glm::mat4 m = glm::eulerAngleYXZ(distribution(rng), distribution(rng), distribution(rng));
 	glm::mat3 rotM(m);
 	
-	for(int i=0; i < rays.size(); i++)
+	for(size_t i=0; i < rays.size(); i++)
 	{
 		rays[i] = rotM * rays[i];
 	}

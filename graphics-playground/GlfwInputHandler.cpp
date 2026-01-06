@@ -33,7 +33,7 @@ void GlfwInputHandler::AddKeyboardObserver(const KeyboardObserver_wptr& observer
 	keyboardObservers.push_back(observer);
 }
 
-void GlfwInputHandler::mouseMove(GLFWwindow* window, double x, double y)
+void GlfwInputHandler::mouseMove([[maybe_unused]] GLFWwindow* window, double x, double y)
 {
 	instance.handleMove(vec2(x,y));
 }
@@ -52,7 +52,7 @@ void GlfwInputHandler::click(GLFWwindow* window, int button, int action, int mod
 	instance.handleClick(vec2(x, y), button, action, mods);
 }
 
-void GlfwInputHandler::key(GLFWwindow* window, int key, int scancode, int action, int mods)
+void GlfwInputHandler::key(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, int mods)
 {
 	if(action == GLFW_PRESS)
 		instance.handleKey(window, key, mods);
@@ -82,7 +82,7 @@ void GlfwInputHandler::handleMove(const glm::vec2& position)
 	}
 }
 
-void GlfwInputHandler::handleClick(const glm::vec2& position, int button, int action, int mods)
+void GlfwInputHandler::handleClick(const glm::vec2& position, int button, int action, [[maybe_unused]] int mods)
 {
 	Input::Direction buttonAction = (action == GLFW_PRESS) ? Input::Direction::UP : Input::Direction::DOWN;
 

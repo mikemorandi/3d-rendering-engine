@@ -11,7 +11,7 @@ class FirstPersonCameraAdapter : public CameraAdapter, public MouseObserver, pub
 {
 public:
 	FirstPersonCameraAdapter(const Camera_ptr& cam);
-	~FirstPersonCameraAdapter();
+	virtual ~FirstPersonCameraAdapter();
 
 	virtual void OnMouseMove(const glm::vec2& position) override;
 	virtual void OnMouseDrag(const glm::vec2& position) override;

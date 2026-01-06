@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Texture2D.h"
 
 #include "../error.h"
@@ -38,15 +37,13 @@ Texture2D::Texture2D(GLuint texHandle)
 	{
 		GLint boundTex = 0;
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTex);
-		if (boundTex != texHandle)
+		if (static_cast<GLuint>(boundTex) != texHandle)
 			glBindTexture(GL_TEXTURE_2D, texHandle);
-
-		GLint twidth = 0, theight = 0;
 		
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH,  &dimensions.x);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &dimensions.y);
 		
-		if (boundTex != texHandle)	
+		if (static_cast<GLuint>(boundTex) != texHandle)	
 			glBindTexture(GL_TEXTURE_2D, boundTex);
 	}
 	else
@@ -57,8 +54,6 @@ Texture2D::Texture2D(int width, int height, Format format)
 	: Texture(GL_TEXTURE_2D, format)
 	, dimensions( glm::ivec2(width,height))
 {
-	bool isDepth = format == Format::Depth;
-
 	GLint internalFormat = static_cast<GLint>(format);
 	GLenum dataFormat = DataFormat(format);
 	GLenum dataType = DataType(format);
@@ -76,7 +71,6 @@ Texture2D::Texture2D(int width, int height, const void* data, Format format)
 {
 	GLint internalFormat = static_cast<GLint>(format);
 	GLenum dataFormat = DataFormat(format);
-	GLenum dataType = DataType(format);
 
 	glGenTextures(1, &texObject);
 	glBindTexture(GL_TEXTURE_2D, texObject);

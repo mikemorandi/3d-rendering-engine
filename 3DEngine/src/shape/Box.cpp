@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Box.h"
 #include <glm/gtc/matrix_transform.hpp>
 

@@ -1,15 +1,17 @@
-#pragma once
+#include "graphics-playground.h"
 
-#include "Graphics Playground.h"
-
+#ifdef _MSC_VER
 #pragma warning(disable: 4251) // See https://github.com/cginternals/glbinding/issues/141
+#endif
 #include <glbinding/gl/gl.h>
 #include <glbinding/glbinding.h>
 #include <glbinding/gl/functions.h>
 #include <glbinding-aux/ContextInfo.h>
 #include <glbinding-aux/types_to_string.h>
 #include <glbinding-aux/debug.h>
+#ifdef _MSC_VER
 #pragma warning(default: 4251)
+#endif
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -19,6 +21,7 @@
 #include <string>
 #include <cstdlib>
 
+#include <core/GLErrorHandler.h>
 #include <input/WindowEventHandler.h>
 #include <shader/ShaderLibrary.h>
 #include <scene/SceneParser.h>
@@ -110,14 +113,14 @@ std::vector<std::string> GraphicsPlayground::FindScences() const
 			scenes.push_back(entry.path().filename().string());
 	}
 
-	return std::move(scenes);
+	return scenes;
 }
 
 
 void GraphicsPlayground::InitGL()
 {
 	glbinding::initialize(glfwGetProcAddress);
-	glbinding::aux::enableGetErrorCallback();
+	GLErrorHandler::Initialize();
 
 	// Use depth buffering for hidden surface elimination
 	glEnable(GL_DEPTH_TEST);
@@ -168,6 +171,12 @@ bool GraphicsPlayground::InitializeWindow()
 	glfwMakeContextCurrent(window);
 
 	InitGL();
+
+	// Get actual framebuffer size (important for Retina displays where it differs from window size)
+	int fbWidth, fbHeight;
+	glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+	viewport = Viewport::Create(fbWidth, fbHeight);
+	viewport->Apply();
 
 	return window;
 }
@@ -229,7 +238,7 @@ void GraphicsPlayground::InitializeEvents(Scene_ptr& scene) {
 	glfwSetCursorPosCallback(window, GlfwInputHandler::mouseMove);
 	glfwSetScrollCallback(window, GlfwInputHandler::wheel);
 
-	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height)
+	glfwSetFramebufferSizeCallback(window, []([[maybe_unused]] GLFWwindow* window, int width, int height)
 	{
 		WindowEventHandler::Resize(width, height);
 	});

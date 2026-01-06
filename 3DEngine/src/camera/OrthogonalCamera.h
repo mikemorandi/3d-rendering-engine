@@ -8,7 +8,7 @@ class OrthogonalCamera : public Camera
 {
 public:
 	OrthogonalCamera();
-	~OrthogonalCamera();
+	virtual ~OrthogonalCamera();
 
 	virtual void ViewportChanged(const Viewport_ptr& viewport) override;
 
@@ -18,7 +18,7 @@ public:
 
 protected:
 
-	virtual void UpdateProjectionMatrix();
+	void UpdateProjectionMatrix() override;
 
 	OrthogonalFrustum frustum;
 };

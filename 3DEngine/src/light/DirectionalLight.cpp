@@ -1,28 +1,23 @@
-#include "stdafx.h"
 
 #include "DirectionalLight.h"
-#include "Shadow.h"
 
 #include "../shape/Box.h"
 #include "../util/Util.h"
 #include "../materials/Material.h"
+#include "../math/BoundingBox.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-DirectionalLight_ptr DirectionalLight::Create(const glm::vec3& direction, bool castsShadow)
+DirectionalLight_ptr DirectionalLight::Create(const glm::vec3& direction)
 {
-	DirectionalLight_ptr ptr = DirectionalLight_ptr(new DirectionalLight(direction,castsShadow));	
-	ptr->UpdateShadow();
+	DirectionalLight_ptr ptr = DirectionalLight_ptr(new DirectionalLight(direction));
 	return ptr;
 }
 
-DirectionalLight::DirectionalLight(const glm::vec3& direction, bool castsShadow)
+DirectionalLight::DirectionalLight(const glm::vec3& direction)
 {
-	if(castsShadow)
-		shadow = Shadow::Create();
-
-	this->direction = direction;
+	this->direction = glm::normalize(direction);
 
 	visMesh = Util::CreateWireBox();
 
@@ -34,21 +29,7 @@ DirectionalLight::DirectionalLight(const glm::vec3& direction, bool castsShadow)
 
 void DirectionalLight::UpdateVisMesh()
 {
-	glm::mat4 tmat = glm::translate(glm::mat4(1), shadowFrustum.position);
-
-	tmat *= glm::mat4(shadowFrustum.frame);
-
-	tmat = glm::translate(tmat, glm::vec3(shadowFrustum.nearPlane,
-		shadowFrustum.top - (shadowFrustum.top - shadowFrustum.bottom) / 2.f,
-		shadowFrustum.left - (shadowFrustum.left - shadowFrustum.right) / 2.f));
-
-	tmat = glm::scale(tmat, glm::vec3(shadowFrustum.farPlane - shadowFrustum.nearPlane,
-		(shadowFrustum.top - shadowFrustum.bottom) / 2, 
-		(shadowFrustum.left - shadowFrustum.right) / 2));
-
-	tmat = glm::translate(tmat, glm::vec3(1,0,0));
-
-	visMesh->SetWorldTransform(tmat);
+	visMesh->SetWorldTransform(glm::scale(glm::mat4(1.0), glm::vec3(0.5f)));
 }
 
 const glm::vec3& DirectionalLight::Direction() const
@@ -59,13 +40,6 @@ const glm::vec3& DirectionalLight::Direction() const
 void DirectionalLight::SetDirection(const glm::vec3& dir)
 {
 	direction = glm::normalize(dir);
-	UpdateShadow();
-}
-
-void DirectionalLight::UpdateShadow()
-{
-	if (shadow && camera)
-		shadow->UpdateShadowMatrix(shared_from_this(),camera);
 }
 
 Shape_ptr DirectionalLight::ModelRepresentation() const
@@ -73,9 +47,59 @@ Shape_ptr DirectionalLight::ModelRepresentation() const
 	return visMesh;
 }
 
-void DirectionalLight::SetShadowFrustum(const OrthogonalFrustum & frust)
+glm::mat4 DirectionalLight::GetLightViewMatrix() const
 {
-	shadowFrustum = frust;
-	UpdateVisMesh();
+	return lightViewMatrix;
 }
 
+glm::mat4 DirectionalLight::GetLightProjectionMatrix() const
+{
+	return lightProjectionMatrix;
+}
+
+void DirectionalLight::UpdateLightMatrices(const AABBox& sceneBounds)
+{
+	// For directional lights, we use orthographic projection
+	// Position the light far enough to cover the scene
+	glm::vec3 center = sceneBounds.p;  // p is the center of the bounding box
+	float radius = glm::length(sceneBounds.d);
+
+	// Place light position along the negative direction from scene center
+	glm::vec3 lightPos = center - direction * (radius * 2.0f);
+
+	// Create view matrix looking at the scene center
+	glm::vec3 up = glm::abs(direction.y) > 0.999f ? glm::vec3(0, 0, 1) : glm::vec3(0, 1, 0);
+	lightViewMatrix = glm::lookAt(lightPos, center, up);
+
+	// Transform scene bounds to light space to get tight orthographic frustum
+	glm::vec3 minBounds(std::numeric_limits<float>::max());
+	glm::vec3 maxBounds(std::numeric_limits<float>::lowest());
+
+	// Transform all 8 corners of the bounding box to light space
+	for (int x = 0; x < 2; ++x)
+	{
+		for (int y = 0; y < 2; ++y)
+		{
+			for (int z = 0; z < 2; ++z)
+			{
+				glm::vec3 corner = sceneBounds.p + sceneBounds.d * glm::vec3(x * 2.0f - 1.0f, y * 2.0f - 1.0f, z * 2.0f - 1.0f);
+				glm::vec4 lightSpaceCorner = lightViewMatrix * glm::vec4(corner, 1.0f);
+
+				minBounds = glm::min(minBounds, glm::vec3(lightSpaceCorner));
+				maxBounds = glm::max(maxBounds, glm::vec3(lightSpaceCorner));
+			}
+		}
+	}
+
+	// Add some padding to avoid edge clipping
+	float padding = radius * 0.1f;
+	minBounds -= glm::vec3(padding);
+	maxBounds += glm::vec3(padding);
+
+	// Create orthographic projection matrix
+	lightProjectionMatrix = glm::ortho(
+		minBounds.x, maxBounds.x,
+		minBounds.y, maxBounds.y,
+		-maxBounds.z, -minBounds.z  // Negate Z for proper depth direction
+	);
+}

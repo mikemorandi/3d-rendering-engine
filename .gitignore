@@ -13,3 +13,5 @@ Graphics Playground/Debug/
 *.db
 .vs/
 build
+.cache
+build-asan

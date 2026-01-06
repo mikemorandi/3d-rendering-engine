@@ -21,7 +21,6 @@ SHARED_PTR_CLASS_DECL(Skybox);
 SHARED_PTR_CLASS_DECL(WireCube);
 SHARED_PTR_CLASS_DECL(InspectionCameraAdapter);
 SHARED_PTR_CLASS_DECL(FirstPersonCameraAdapter);
-SHARED_PTR_CLASS_DECL(ShadowMapShader);
 SHARED_PTR_CLASS_DECL(Framebuffer);
 SHARED_PTR_CLASS_DECL(Viewport);
 SHARED_PTR_CLASS_DECL(AmbientLight)
@@ -55,7 +54,7 @@ public:
 	void SetRenderLightRepresentation(bool enable);
 	bool RenderLightRepresentation() const { return renderLightRepresentation; };
 
-	virtual void TimeUpdate(double time);
+	void TimeUpdate(double time) override;
 
 	Camera_ptr activeCamera;
 	LightModel_ptr lightModel;
@@ -77,8 +76,6 @@ public:
 
 protected:
 
-	void RenderShadowMaps();
-
 	void UpdateLightBboxes();
 
 	virtual void CameraChanged() override;
@@ -86,7 +83,6 @@ protected:
 	InspectionCameraAdapter_ptr inspectionCamAdapter;
 	FirstPersonCameraAdapter_ptr fpCamAdapter;
 
-	ShadowMapShader_ptr shadowShader;
 	Framebuffer_ptr framebuffer;
 	Shape_ptr wireCube;
 

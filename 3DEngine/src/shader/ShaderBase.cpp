@@ -1,10 +1,10 @@
-#include "stdafx.h"
 #include "ShaderBase.h"
 
 #include "../camera/Camera.h"
 #include "../util/Util.h"
 #include "../scene/Scene.h"
 #include "../config.h"
+#include "../error.h"
 
 #include <filesystem>
 #include <sstream>
@@ -12,7 +12,8 @@
 namespace fs = std::filesystem;
 
 ShaderBase::ShaderBase(const std::string& shaderName)
-	: hasMVP(true)
+	: GLSLProgram()
+	, hasMVP(true)
 	, hasNM(true)
 	, hasMVM(true)
 	, hasVM(false)
@@ -20,7 +21,6 @@ ShaderBase::ShaderBase(const std::string& shaderName)
 	, hasPM(false)
 	, shaderName(shaderName)
 	, vertexAttribInfo(VertexAttributeInfo::Create())
-	, GLSLProgram()
 {
 	LoadShader(shaderName);
 	Init();
@@ -60,14 +60,14 @@ void ShaderBase::BeforeUniformSet()
 {
 	currentProgram = GetCurentProgram();
 
-	if(currentProgram != programHandle)
+	if(static_cast<GLuint>(currentProgram) != programHandle)
 		GLSLProgram::Use();
 
 }
 
 void ShaderBase::AfterUniformSet()
 {
-	if(currentProgram != programHandle)
+	if(static_cast<GLuint>(currentProgram) != programHandle)
 		glUseProgram(currentProgram);
 }
 

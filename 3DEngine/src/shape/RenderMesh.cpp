@@ -1,16 +1,12 @@
-#include "stdafx.h"
 #include "RenderMesh.h"
 #include "../scene/Scene.h"
 #include "../shader/ShaderLibrary.h"
 #include "../shader/ShaderBase.h"
 #include "../shader/MaterialShader.h"
-#include "../shader/ShadowMapShader.h"
 #include "../texture/Texture2D.h"
 #include "../util/Util.h"
 #include "../util/RawMesh.h"
 #include "../materials/Material.h"
-
-#include "../light/Shadow.h"
 
 #include "../error.h"
 
@@ -33,8 +29,9 @@ RenderMesh::RenderMesh(const OpenGLRawMesh_ptr&  rawMesh)
 }
 
 RenderMesh::RenderMesh(DrawMode mode)
-: initialized(false)
-, Shape()
+: Shape()
+, initialized(false)
+, vertexCount(0)
 {
 	SetDrawingMode(mode);
 	Init();
@@ -116,21 +113,26 @@ bool RenderMesh::MapVertexAttribute(VertexAttribute attrib, GLuint channel) cons
 	GLuint currentChannel = vAttribData[attrib].channel;
 
 	if (currentChannel != channel && GL_TRUE == glIsBuffer(bufferObjects[attrib]))
-	{		
-		//bind array & buffer
-		glBindVertexArray(vaoHandle);	
+	{
+		// VAO should already be bound by MapVertexAttributes()
+		// Just bind the buffer and set up the attribute - changes will be stored in the VAO
 		glBindBuffer(GL_ARRAY_BUFFER, bufferObjects[attrib]);
 
-		glDisableVertexAttribArray(currentChannel);
+		// Disable old channel if it was different
+		if (currentChannel != channel && currentChannel < 999)
+		{
+			glDisableVertexAttribArray(currentChannel);
+		}
 
+		// Enable new channel
 		glEnableVertexAttribArray(channel);
 
+		// Update channel and set pointer
 		vAttribData[attrib].channel = channel;
 		SetAttribPointer(attrib);
 
-		//unbind array & buffer
-		glBindBuffer(GL_ARRAY_BUFFER,0);
-		glBindVertexArray(0);
+		// Unbind the array buffer (but keep VAO bound)
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	
 	return true;
@@ -147,8 +149,10 @@ bool RenderMesh::SetPositions(const std::vector<glm::vec3>& positions, const std
 {
 	bool success = true;
 
+	vertexCount = positions.size();
+
 	glBindVertexArray(vaoHandle);
-	
+
 	//Vertex buffer
 	glGenBuffers(1, &bufferObjects[Position]);
 
@@ -365,6 +369,9 @@ void RenderMesh::Init()
 
 void RenderMesh::MapVertexAttributes(ShaderBase_ptr shader) const
 {
+	// Bind VAO first - all subsequent state changes will be captured by the VAO
+	glBindVertexArray(vaoHandle);
+
 	if (auto vai = shader->GetVertexAttributeInfo())
 	{
 		for (auto& kv : vai->mapping) {
@@ -379,50 +386,11 @@ void RenderMesh::MapVertexAttributes(ShaderBase_ptr shader) const
 					if (!MapVertexAttribute(attrib, channel))
 						Error("Could not map vertex attribute channel");
 				}
-				else
-				{	
-#if _DEBUG
-					std::stringstream ss;
-					ss << vertexAttributeNames[attrib];
-					
-					Warn("Shader uses vertex attribute '" + ss.str() + "' for which no data is present in mesh '" + name + "'");	
-					for (size_t i = 0; i < 6; i++)
-					{
-						std::cout << vtxAttribSet[i] << std::endl;
-					}
-#endif
-				}								
 			}
 		}
 	}
 
-	glBindVertexArray(vaoHandle);
-}
-
-void RenderMesh::RenderShadowMap(const ShadowMapShader_ptr& shadow_shader) const
-{
-	if (shadow_shader)
-	{
-		//Render individual index groups if available
-		int numRanges = (int)ranges.size();
-
-		MapVertexAttributes(shadow_shader);
-
-		for (size_t i = 0; i < numRanges; i++)
-		{
-			if (ShaderBase_ptr currentShader = shadow_shader)
-			{
-				Draw(i);
-			}
-			else
-			{
-				Error("Could not obtain shader for this material");
-			}
-		}
-
-		glBindVertexArray(0);
-	}
-	
+	// VAO remains bound after this function - it will be used for drawing
 }
 
 void RenderMesh::Render(const Scene_ptr& scene) const
@@ -436,7 +404,7 @@ void RenderMesh::Render(const Scene_ptr& scene) const
 
 	auto render_pass = [&](bool transparent)
 	{
-		for (size_t i = 0; i < numRanges; i++)
+		for (size_t i = 0; i < static_cast<size_t>(numRanges); i++)
 		{
 			Material_ptr current_material = (i < materialsNew.size())
 				? materialsNew[i]
@@ -461,18 +429,18 @@ void RenderMesh::Render(const Scene_ptr& scene) const
 						}
 						else
 						{
-							Error("Could not use shader " + current_shader->GetName());
+							Error("Could not use shader " + current_shader->GetName() + " for material " + current_material->Name());
 							int a;
 							std::cin >> a;
 						}
 
 					}
 					else
-						Error("Could not set material");
+						Error("Could not set material: " + current_material->Name());
 				}
 				else
 				{
-					Error("Could not obtain shader for this material");
+					Error("Could not obtain shader for material: " + current_material->Name());
 				}
 			}
 		}
@@ -486,18 +454,31 @@ void RenderMesh::Render(const Scene_ptr& scene) const
 
 void RenderMesh::Draw(const size_t& group) const
 {
-	//Bind i-th index buffer
+	// Verify we have valid vertex data
+	if (vertexCount == 0)
+	{
+		Error("[RenderMesh::Draw] No vertices to draw");
+		return;
+	}
+
+	// Verify group index is valid
+	if (group >= ranges.size())
+	{
+		Error("[RenderMesh::Draw] Invalid group index");
+		return;
+	}
+
+	// Bind the element array buffer for this group
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObjects[group]);
 
-	//Here glDrawRangeElements is used to limit the amount of vertex data to be prefetched
+	// Calculate number of elements to draw
 	int num_elems = (ranges[group].second - ranges[group].first + 1) * primitiveSize;
 
-	glDrawRangeElements(static_cast<GLenum>(drawMode),
-		ranges[group].first,
-		ranges[group].second,
+	// Use glDrawElements instead of glDrawRangeElements for better compatibility
+	glDrawElements(static_cast<GLenum>(drawMode),
 		num_elems,
-		GL_UNSIGNED_INT, nullptr);
-
+		GL_UNSIGNED_INT,
+		nullptr);
 }
 
 void RenderMesh::SetDrawingMode(DrawMode mode)
@@ -518,4 +499,19 @@ void RenderMesh::SetDrawingMode(DrawMode mode)
 	default:
 		break;
 	}
+}
+
+void RenderMesh::RenderGeometry(const ShaderBase_ptr& shader) const
+{
+	// Map vertex attributes for this shader
+	MapVertexAttributes(shader);
+
+	// Render all index groups
+	int numRanges = static_cast<int>(ranges.size());
+	for (size_t i = 0; i < static_cast<size_t>(numRanges); i++)
+	{
+		Draw(i);
+	}
+
+	glBindVertexArray(0);
 }

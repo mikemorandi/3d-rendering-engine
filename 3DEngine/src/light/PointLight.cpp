@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "PointLight.h"
 
 #include "../shape/Box.h"
@@ -67,4 +66,16 @@ void PointLight::SetAnimated(bool animated)
 bool PointLight::Animated() const
 {
 	return animated;
+}
+
+glm::mat4 PointLight::GetLightViewMatrix() const
+{
+	// Point lights don't have a single view matrix (would need 6 for cubemap)
+	return glm::mat4(1.0f);
+}
+
+glm::mat4 PointLight::GetLightProjectionMatrix() const
+{
+	// Point lights don't have a single projection matrix (would need 6 for cubemap)
+	return glm::mat4(1.0f);
 }

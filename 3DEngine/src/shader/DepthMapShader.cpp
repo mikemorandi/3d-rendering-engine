@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "DepthMapShader.h"
 #include "../materials/Material.h"
 #include "../texture/Texture2D.h"

@@ -17,8 +17,6 @@ public:
 
 	virtual void Render(const Scene_ptr& scene) const override;
 
-	virtual void RenderShadowMap(const ShadowMapShader_ptr&) const override;
-
 	virtual AABBox BoundingBox() const override;
 
 private:

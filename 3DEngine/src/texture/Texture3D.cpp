@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Texture3D.h"
 
 #include "../error.h"
@@ -19,8 +18,6 @@ Texture3D::Texture3D(int width, int height, int depth, Format format, void* data
 	: Texture(GL_TEXTURE_3D, format)
 	, dimensions(width,height,depth)
 {
-	bool isDepth = format == Format::Depth;
-
 	wrapMode = Texture::TextureWrapMode::ClampToBorder;
 
 	GLint internalFormat = static_cast<GLint>(textureFormat);

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #include "CubeMapTexture.h"
 #include "../texture/ImageUtil.h"

@@ -31,11 +31,11 @@ public:
 
 	inline AABBox operator+(const AABBox& rhs) { return HullBox(rhs); }
 
-	inline bool operator==(const AABBox& other) {
+	inline bool operator==(const AABBox& other) const {
 		return d == other.d && p == other.p;
-	};	
+	};
 
-	inline bool operator!=(const AABBox& other) {
+	inline bool operator!=(const AABBox& other) const {
 		return !(*this == other);
 	}
 

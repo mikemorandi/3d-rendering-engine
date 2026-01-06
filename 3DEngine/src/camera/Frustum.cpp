@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Frustum.h"
 
 #include <glm/glm.hpp>

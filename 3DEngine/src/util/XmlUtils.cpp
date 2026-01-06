@@ -1,6 +1,6 @@
-#include "stdafx.h"
 #include "XmlUtils.h"
 
+#include "../error.h"
 
 #include <iostream>
 #include <glm/vec3.hpp>

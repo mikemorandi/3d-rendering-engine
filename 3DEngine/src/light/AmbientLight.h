@@ -17,5 +17,9 @@ public:
 
 	virtual ~AmbientLight();
 
+	// Shadow mapping overrides (AmbientLight doesn't support shadows)
+	virtual glm::mat4 GetLightViewMatrix() const override;
+	virtual glm::mat4 GetLightProjectionMatrix() const override;
+
 };
 

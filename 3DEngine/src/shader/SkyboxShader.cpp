@@ -1,11 +1,10 @@
-#include "stdafx.h"
 #include "SkyboxShader.h"
 #include "../texture/CubeMapTexture.h"
 #include "../materials/Material.h"
 
 SkyboxShader::SkyboxShader()
-	: texUnit(0)
-	, MaterialShader("skyboxShader")
+	: MaterialShader("skyboxShader")
+	, texUnit(0)
 {
 	hasVM = true;
 	hasPM = true;

@@ -49,12 +49,12 @@ public:
 
 	virtual void InitFromWavefrontMaterial(const WavefrontObjMaterial_cptr& mat, const std::filesystem::path& base_folder);
 
-	glm::vec3 ambientReflection;
-	glm::vec3 diffuseReflection;
-	glm::vec3 glossyReflection;
-	int shininess;
+	glm::vec3 color;
+	float ambientReflect;
+	float diffuseReflect;
+	float glossyReflect;
+	float shininess;
 	float opacity;
-	bool dither;
 
 	virtual bool IsTransparent() const override;
 protected:

@@ -1,32 +1,30 @@
 #pragma once
 
 #include "PointLight.h"
-#include "ShadowCastingLight.h"
 
 #include "../camera/Frame.h"
 
 SHARED_PTR_CLASS_DECL(SpotLight);
-SHARED_PTR_CLASS_DECL(Shadow);
 
 /**
 *      pos
 *       .
 *      /|\		t = theta, the cutoff angle
-*     / | \		is an angle that specifies the angular extent 
+*     / | \		is an angle that specifies the angular extent
 *    /  |  \	measured from the centerline (direction)
 *   / t | t \
-*       v 
+*       v
 *        dir
-*      
+*
 */
-class SpotLight : public PointLight, public ShadowCastingLight, public std::enable_shared_from_this<SpotLight>
+class SpotLight : public PointLight, public std::enable_shared_from_this<SpotLight>
 {
 public:
 
-	static SpotLight_ptr Create(const glm::vec3& direction, float cutoffAngle, float exponent, bool castsShadow = true);
+	static SpotLight_ptr Create(const glm::vec3& direction, float cutoffAngle, float exponent);
 
-	SpotLight(const glm::vec3& direction, float cutoffAngle, float exponent, bool castsShadow);
-	
+	SpotLight(const glm::vec3& direction, float cutoffAngle, float exponent);
+
 	virtual void SetDirection(const glm::vec3& dir);
 
 	virtual void SetPosition(const glm::vec4& pos) override;
@@ -40,12 +38,15 @@ public:
 	virtual void SetExponent(float exponent);
 	virtual float Exponent() const;
 
-	virtual void UpdateShadow() override;
+	// Shadow mapping overrides
+	virtual glm::mat4 GetLightViewMatrix() const override;
+	virtual glm::mat4 GetLightProjectionMatrix() const override;
+	void UpdateLightMatrices();
 
 protected:
 
 	void UpdateVisMesh();
-	
+
 	CoordinateFrame frame;
 
 	float cutoffAngle;

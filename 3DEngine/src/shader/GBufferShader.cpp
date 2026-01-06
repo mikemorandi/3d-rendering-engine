@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "GBufferShader.h"
 
 GBufferShader::GBufferShader()

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Framebuffer.h"
 #include "Texture2D.h"
 
@@ -24,7 +23,7 @@ bool Framebuffer::IsBound() const
 {
 	GLint boundFbo = 0;
 	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &boundFbo);
-	return boundFbo == bufferHandle;
+	return static_cast<GLuint>(boundFbo) == bufferHandle;
 }
 
 bool Framebuffer::Attach(const Texture2D_ptr& texture, Attachment target)
@@ -72,7 +71,7 @@ bool Framebuffer::AttachDepthRenderBuffer()
 
 	if (!glIsRenderbuffer(bufHandle))
 	{
-		if (bufHandle = CreateRenderBuffer(GL_DEPTH_COMPONENT))
+		if ((bufHandle = CreateRenderBuffer(GL_DEPTH_COMPONENT)))
 		{
 			bool isRbuf = glIsRenderbuffer(bufHandle) == GL_TRUE;
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, bufHandle);

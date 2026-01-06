@@ -14,6 +14,9 @@ SHARED_PTR_CLASS_DECL(UniformBuffer);
 SHARED_PTR_CLASS_DECL(GLSLProgram);
 SHARED_PTR_CLASS_DECL(Texture3D);
 SHARED_PTR_CLASS_DECL(Texture2D);
+SHARED_PTR_CLASS_DECL(Light);
+
+class AABBox;
 
 class LightModel
 {
@@ -27,14 +30,17 @@ public:
 
 	bool IsValid();
 
+	// Shadow mapping support
+	void InitializeShadowMaps(const AABBox& sceneBounds, int resolution = 2048);
+	std::vector<Light_ptr> GetShadowCastingLights() const;
+	void UpdateShadowMatrices(const AABBox& sceneBounds);
+
 public:
 
 	std::vector<PointLight_ptr> pointLights;
 	std::vector<SpotLight_ptr>	spotLights;
 	DirectionalLight_ptr		directionalLight;
 	AmbientLight_ptr			ambientLight;
-	Texture3D_ptr				pcfShadowRandomData;
-	Texture2D_ptr				ditherData;
 
 protected:
 
