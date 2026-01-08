@@ -18,8 +18,7 @@ CoordinateFrame BoundingBoxUtil::BasisFromDirection(const glm::vec3 & direction)
 	float ldMin = std::numeric_limits<float>::max();
 	for (int i = 0; i < 3; i++)
 	{
-		float current_comp = std::abs(directionNormalized[i]);
-		if (current_comp < ldMin)
+		if (float current_comp = std::abs(directionNormalized[i]); current_comp < ldMin)
 		{
 			minDirIndex = i;
 			ldMin = current_comp;
@@ -147,29 +146,69 @@ bool BoundingBoxUtil::DirectionalLightFrustum(const AABBox & bbox, const glm::ve
 	return false;
 }
 
-bool BoundingBoxUtil::DirectionalLightFrustum([[maybe_unused]] const AABBox & box, const glm::vec3 & lightDir, const Frustum & camFrustum, OrthogonalFrustum & frustum)
+bool BoundingBoxUtil::DirectionalLightFrustum(const AABBox & box, const glm::vec3 & lightDir, const Frustum & camFrustum, OrthogonalFrustum & frustum)
 {
-	// TODO: Use box for bounds calculation
 	auto cam_points = camFrustum.CornerPoints();
 
 	glm::vec3 lightDirNormalized = glm::normalize(lightDir);
 	frustum.frame = BasisFromDirection(lightDirNormalized);
 
+	// Transform camera frustum points to light space
 	std::transform(cam_points.begin(), cam_points.end(), cam_points.begin(),
 		[&frustum](const glm::vec3& v) { return frustum.frame * v; });
 
+	// Initialize bounds with camera frustum points
 	frustum.left = std::numeric_limits<glm::vec3::value_type>::max();
 	frustum.right = -std::numeric_limits<glm::vec3::value_type>::max();
 	frustum.top = -std::numeric_limits<glm::vec3::value_type>::max();
 	frustum.bottom = std::numeric_limits<glm::vec3::value_type>::max();
+	float nearZ = std::numeric_limits<glm::vec3::value_type>::max();
+	float farZ = -std::numeric_limits<glm::vec3::value_type>::max();
 
-	for (auto p : cam_points)
+	for (const auto& p : cam_points)
 	{
-		frustum.left = std::min(frustum.left , p[CoordinateFrame::SideAxis]);
-		frustum.right = std::max(frustum.left, p[CoordinateFrame::SideAxis]);
-		frustum.bottom = std::min(frustum.left, p[CoordinateFrame::UpAxis]);
-		frustum.top = std::max(frustum.left, p[CoordinateFrame::UpAxis]);
+		frustum.left = std::min(frustum.left, p[CoordinateFrame::SideAxis]);
+		frustum.right = std::max(frustum.right, p[CoordinateFrame::SideAxis]);
+		frustum.bottom = std::min(frustum.bottom, p[CoordinateFrame::UpAxis]);
+		frustum.top = std::max(frustum.top, p[CoordinateFrame::UpAxis]);
+		nearZ = std::min(nearZ, p[CoordinateFrame::ViewAxis]);
+		farZ = std::max(farZ, p[CoordinateFrame::ViewAxis]);
 	}
 
-	return false;
+	// Include bounding box corners in the calculation to constrain the frustum
+	auto get_corner = [&box](bool a, bool b, bool c)
+	{
+		glm::vec3 corner = box.p;
+		corner[0] += (box.d[0] * (a ? 1.f : -1.f));
+		corner[1] += (box.d[1] * (b ? 1.f : -1.f));
+		corner[2] += (box.d[2] * (c ? 1.f : -1.f));
+		return corner;
+	};
+
+	// Transform all 8 corners of the bounding box to light space and update bounds
+	std::array<glm::vec3, 8> box_corners = {
+		frustum.frame * get_corner(false, false, false),
+		frustum.frame * get_corner(false, false, true),
+		frustum.frame * get_corner(false, true, false),
+		frustum.frame * get_corner(false, true, true),
+		frustum.frame * get_corner(true, false, false),
+		frustum.frame * get_corner(true, false, true),
+		frustum.frame * get_corner(true, true, false),
+		frustum.frame * get_corner(true, true, true)
+	};
+
+	for (const auto& p : box_corners)
+	{
+		frustum.left = std::min(frustum.left, p[CoordinateFrame::SideAxis]);
+		frustum.right = std::max(frustum.right, p[CoordinateFrame::SideAxis]);
+		frustum.bottom = std::min(frustum.bottom, p[CoordinateFrame::UpAxis]);
+		frustum.top = std::max(frustum.top, p[CoordinateFrame::UpAxis]);
+		nearZ = std::min(nearZ, p[CoordinateFrame::ViewAxis]);
+		farZ = std::max(farZ, p[CoordinateFrame::ViewAxis]);
+	}
+
+	frustum.nearPlane = nearZ;
+	frustum.farPlane = farZ;
+
+	return true;
 }

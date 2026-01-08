@@ -1,6 +1,6 @@
 #include "DepthTexture.h"
 
-DepthTexture_ptr DepthTexture::Create(int width, int height)
+DepthTexturePtr DepthTexture::Create(int width, int height)
 {
 	return std::make_shared<DepthTexture>(width, height, Texture2D::Format::Depth);
 }

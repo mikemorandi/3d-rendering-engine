@@ -13,7 +13,7 @@
 #include <memory>
 #include <glm/gtc/matrix_transform.hpp>
 
-SceneOverlay2D::SceneOverlay2D(Scene_ptr scene)
+SceneOverlay2D::SceneOverlay2D(ScenePtr scene)
 : Scene(std::shared_ptr<OrthogonalCamera>(new OrthogonalCamera()),false)
 {
 	renderBoundingBoxes = false;
@@ -30,7 +30,7 @@ SceneOverlay2D::~SceneOverlay2D()
 {
 }
 
-SceneOverlay2D_ptr SceneOverlay2D::Create(Scene_ptr scene)
+SceneOverlay2DPtr SceneOverlay2D::Create(ScenePtr scene)
 {
 	return std::make_shared<SceneOverlay2D>(scene);
 }

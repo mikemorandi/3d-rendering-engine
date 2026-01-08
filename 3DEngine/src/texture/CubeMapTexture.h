@@ -1,14 +1,20 @@
 #pragma once
 
 #include <string>
+#include <memory>
 #include <vector>
 #include <filesystem>
 
-#include "../util/SharedPointer.h"
 #include "../core/gl.h"
 
-SHARED_PTR_CLASS_DECL(CubeMapTexture);
-SHARED_PTR_CLASS_DECL(ImageData);
+class CubeMapTexture;
+using CubeMapTexturePtr = std::shared_ptr<CubeMapTexture>;
+using CubeMapTextureConstPtr = std::shared_ptr<const CubeMapTexture>;
+using CubeMapTextureWeakPtr = std::weak_ptr<CubeMapTexture>;
+class ImageData;
+using ImageDataPtr = std::shared_ptr<ImageData>;
+using ImageDataConstPtr = std::shared_ptr<const ImageData>;
+using ImageDataWeakPtr = std::weak_ptr<ImageData>;
 
 class CubeMapTexture
 {
@@ -21,7 +27,7 @@ public:
 
 protected:
 
-	void LoadImages(std::vector<ImageData_ptr>& images);
+	void LoadImages(std::vector<ImageDataPtr>& images);
 
 	void InitTextureParams();
 

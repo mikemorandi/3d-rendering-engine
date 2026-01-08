@@ -15,7 +15,7 @@ PointLight::PointLight()
 {
 	visMesh = Util::CreateBox();
 
-	ConstantColorMaterial_ptr mat = ConstantColorMaterial::Create();
+	ConstantColorMaterialPtr mat = ConstantColorMaterial::Create();
 	mat->color = color;
 	visMesh->SetMaterial(mat);
 	visMesh->SetWorldTransform(glm::scale(glm::mat4(1.0), glm::vec3(0.05f)));
@@ -43,7 +43,7 @@ const glm::vec4& PointLight::Position() const
 void PointLight::SetColor(const vec3& color)
 {
 	Light::SetColor(color);
-	ConstantColorMaterial_ptr mat = std::dynamic_pointer_cast<ConstantColorMaterial>(visMesh->Material());
+	ConstantColorMaterialPtr mat = std::dynamic_pointer_cast<ConstantColorMaterial>(visMesh->Material());
 	if (!mat)
 	{
 		mat = ConstantColorMaterial::Create();
@@ -53,7 +53,7 @@ void PointLight::SetColor(const vec3& color)
 	mat->color = color;
 }
 
-Shape_ptr PointLight::ModelRepresentation() const
+ShapePtr PointLight::ModelRepresentation() const
 {
 	return visMesh;
 }

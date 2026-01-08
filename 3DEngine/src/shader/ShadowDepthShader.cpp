@@ -2,11 +2,11 @@
 #include "../scene/Scene.h"
 #include <iostream>
 
-ShadowDepthShader_ptr ShadowDepthShader::Create()
+ShadowDepthShaderPtr ShadowDepthShader::Create()
 {
 	try {
 		std::cout << "[Shadow] ShadowDepthShader::Create(): Creating instance..." << std::endl;
-		auto shader = ShadowDepthShader_ptr(new ShadowDepthShader());
+		auto shader = ShadowDepthShaderPtr(new ShadowDepthShader());
 		std::cout << "[Shadow] ShadowDepthShader::Create(): Instance created successfully" << std::endl;
 		return shader;
 	}
@@ -31,7 +31,7 @@ ShadowDepthShader::ShadowDepthShader()
 	std::cout << "[Shadow] ShadowDepthShader constructor: Complete" << std::endl;
 }
 
-bool ShadowDepthShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
+bool ShadowDepthShader::Use(const ScenePtr& scene, const glm::mat4& modelTransform)
 {
 	// Activate shader program
 	bool ok = ShaderBase::Use(scene, modelTransform);

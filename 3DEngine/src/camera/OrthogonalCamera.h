@@ -1,8 +1,12 @@
 #pragma once
 
 #include "Camera.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(OrthogonalCamera);
+class OrthogonalCamera;
+using OrthogonalCameraPtr = std::shared_ptr<OrthogonalCamera>;
+using OrthogonalCameraConstPtr = std::shared_ptr<const OrthogonalCamera>;
+using OrthogonalCameraWeakPtr = std::weak_ptr<OrthogonalCamera>;
 
 class OrthogonalCamera : public Camera
 {
@@ -10,7 +14,7 @@ public:
 	OrthogonalCamera();
 	virtual ~OrthogonalCamera();
 
-	virtual void ViewportChanged(const Viewport_ptr& viewport) override;
+	virtual void ViewportChanged(const ViewportPtr& viewport) override;
 
 	virtual Frustum& CameraFrustum() override;
 

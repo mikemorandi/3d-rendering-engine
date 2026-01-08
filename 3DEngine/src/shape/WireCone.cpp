@@ -2,7 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-WireCone_ptr WireCone::Create(float opening_angle, float height)
+WireConePtr WireCone::Create(float opening_angle, float height)
 {
 	return std::make_shared<WireCone>(opening_angle, height);
 }

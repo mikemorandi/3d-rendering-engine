@@ -11,7 +11,7 @@ DepthMapShader::DepthMapShader()
 }
 
 
-bool DepthMapShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
+bool DepthMapShader::Use(const ScenePtr& scene, const glm::mat4& modelTransform)
 {
 	bool ok = MaterialShader::Use(scene, modelTransform);
 	
@@ -30,9 +30,9 @@ bool DepthMapShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform
 	return ok;
 }
 
-bool DepthMapShader::SetMaterial(const Material_cptr& material)
+bool DepthMapShader::SetMaterial(const MaterialConstPtr& material)
 {
-	if (DepthMapMaterial_cptr mat = std::dynamic_pointer_cast<const DepthMapMaterial>(material))
+	if (DepthMapMaterialConstPtr mat = std::dynamic_pointer_cast<const DepthMapMaterial>(material))
 	{
 		this->material = mat;
 		return true;

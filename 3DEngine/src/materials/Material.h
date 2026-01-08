@@ -1,22 +1,61 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include <memory>
 #include <glm/vec3.hpp>
 #include <filesystem>
 
-SHARED_PTR_CLASS_DECL(Material);
-SHARED_PTR_CLASS_DECL(IntrinsicColorMaterial);
-SHARED_PTR_CLASS_DECL(ConstantColorMaterial);
-SHARED_PTR_CLASS_DECL(PhongMaterial);
-SHARED_PTR_CLASS_DECL(TextureMaterial);
-SHARED_PTR_CLASS_DECL(Texture2D);
-SHARED_PTR_CLASS_DECL(DepthTexture);
-SHARED_PTR_CLASS_DECL(ShDiffuseMaterial);
-SHARED_PTR_CLASS_DECL(ShDiffuseShaderCoeffs);
-SHARED_PTR_CLASS_DECL(SkyboxMaterial);
-SHARED_PTR_CLASS_DECL(CubeMapTexture);
-SHARED_PTR_CLASS_DECL(DepthMapMaterial);
-SHARED_PTR_CLASS_DECL(WavefrontObjMaterial);
+class Material;
+using MaterialPtr = std::shared_ptr<Material>;
+using MaterialConstPtr = std::shared_ptr<const Material>;
+using MaterialWeakPtr = std::weak_ptr<Material>;
+class IntrinsicColorMaterial;
+using IntrinsicColorMaterialPtr = std::shared_ptr<IntrinsicColorMaterial>;
+using IntrinsicColorMaterialConstPtr = std::shared_ptr<const IntrinsicColorMaterial>;
+using IntrinsicColorMaterialWeakPtr = std::weak_ptr<IntrinsicColorMaterial>;
+class ConstantColorMaterial;
+using ConstantColorMaterialPtr = std::shared_ptr<ConstantColorMaterial>;
+using ConstantColorMaterialConstPtr = std::shared_ptr<const ConstantColorMaterial>;
+using ConstantColorMaterialWeakPtr = std::weak_ptr<ConstantColorMaterial>;
+class PhongMaterial;
+using PhongMaterialPtr = std::shared_ptr<PhongMaterial>;
+using PhongMaterialConstPtr = std::shared_ptr<const PhongMaterial>;
+using PhongMaterialWeakPtr = std::weak_ptr<PhongMaterial>;
+class TextureMaterial;
+using TextureMaterialPtr = std::shared_ptr<TextureMaterial>;
+using TextureMaterialConstPtr = std::shared_ptr<const TextureMaterial>;
+using TextureMaterialWeakPtr = std::weak_ptr<TextureMaterial>;
+class Texture2D;
+using Texture2DPtr = std::shared_ptr<Texture2D>;
+using Texture2DConstPtr = std::shared_ptr<const Texture2D>;
+using Texture2DWeakPtr = std::weak_ptr<Texture2D>;
+class DepthTexture;
+using DepthTexturePtr = std::shared_ptr<DepthTexture>;
+using DepthTextureConstPtr = std::shared_ptr<const DepthTexture>;
+using DepthTextureWeakPtr = std::weak_ptr<DepthTexture>;
+class ShDiffuseMaterial;
+using ShDiffuseMaterialPtr = std::shared_ptr<ShDiffuseMaterial>;
+using ShDiffuseMaterialConstPtr = std::shared_ptr<const ShDiffuseMaterial>;
+using ShDiffuseMaterialWeakPtr = std::weak_ptr<ShDiffuseMaterial>;
+class ShDiffuseShaderCoeffs;
+using ShDiffuseShaderCoeffsPtr = std::shared_ptr<ShDiffuseShaderCoeffs>;
+using ShDiffuseShaderCoeffsConstPtr = std::shared_ptr<const ShDiffuseShaderCoeffs>;
+using ShDiffuseShaderCoeffsWeakPtr = std::weak_ptr<ShDiffuseShaderCoeffs>;
+class SkyboxMaterial;
+using SkyboxMaterialPtr = std::shared_ptr<SkyboxMaterial>;
+using SkyboxMaterialConstPtr = std::shared_ptr<const SkyboxMaterial>;
+using SkyboxMaterialWeakPtr = std::weak_ptr<SkyboxMaterial>;
+class CubeMapTexture;
+using CubeMapTexturePtr = std::shared_ptr<CubeMapTexture>;
+using CubeMapTextureConstPtr = std::shared_ptr<const CubeMapTexture>;
+using CubeMapTextureWeakPtr = std::weak_ptr<CubeMapTexture>;
+class DepthMapMaterial;
+using DepthMapMaterialPtr = std::shared_ptr<DepthMapMaterial>;
+using DepthMapMaterialConstPtr = std::shared_ptr<const DepthMapMaterial>;
+using DepthMapMaterialWeakPtr = std::weak_ptr<DepthMapMaterial>;
+class WavefrontObjMaterial;
+using WavefrontObjMaterialPtr = std::shared_ptr<WavefrontObjMaterial>;
+using WavefrontObjMaterialConstPtr = std::shared_ptr<const WavefrontObjMaterial>;
+using WavefrontObjMaterialWeakPtr = std::weak_ptr<WavefrontObjMaterial>;
 
 class Material
 {
@@ -37,7 +76,7 @@ protected:
 class ConstantColorMaterial : public Material
 {
 public:
-	static ConstantColorMaterial_ptr Create();
+	static ConstantColorMaterialPtr Create();
 
 	glm::vec3 color;
 };
@@ -45,9 +84,9 @@ public:
 class PhongMaterial : public Material
 {
 public:
-	static PhongMaterial_ptr Create();
+	static PhongMaterialPtr Create();
 
-	virtual void InitFromWavefrontMaterial(const WavefrontObjMaterial_cptr& mat, const std::filesystem::path& base_folder);
+	virtual void InitFromWavefrontMaterial(const WavefrontObjMaterialConstPtr& mat, const std::filesystem::path& base_folder);
 
 	glm::vec3 color;
 	float ambientReflect;
@@ -64,13 +103,13 @@ protected:
 class TextureMaterial : public PhongMaterial
 {
 public:
-	static TextureMaterial_ptr Create();
-	Texture2D_ptr albedoTexture;
-	Texture2D_ptr bumpTexture;
-	Texture2D_ptr specularTexture;
+	static TextureMaterialPtr Create();
+	Texture2DPtr albedoTexture;
+	Texture2DPtr bumpTexture;
+	Texture2DPtr specularTexture;
 	bool bumpBumpTexIsNormalMap;
 
-	virtual void InitFromWavefrontMaterial(const WavefrontObjMaterial_cptr& mat, const std::filesystem::path &base_folder) override;
+	virtual void InitFromWavefrontMaterial(const WavefrontObjMaterialConstPtr& mat, const std::filesystem::path &base_folder) override;
 
 protected:
 	TextureMaterial();
@@ -79,15 +118,15 @@ protected:
 class IntrinsicColorMaterial : public Material
 {
 public:
-	static IntrinsicColorMaterial_ptr Create();
+	static IntrinsicColorMaterialPtr Create();
 };
 
 class ShDiffuseMaterial : public Material
 {
 public:
-	static ShDiffuseMaterial_ptr Create();
+	static ShDiffuseMaterialPtr Create();
 
-	ShDiffuseShaderCoeffs_ptr shCoeffs;
+	ShDiffuseShaderCoeffsPtr shCoeffs;
 
 protected:
 	ShDiffuseMaterial() {};
@@ -96,9 +135,9 @@ protected:
 class SkyboxMaterial : public Material
 {
 public:
-	static SkyboxMaterial_ptr Create();
+	static SkyboxMaterialPtr Create();
 
-	CubeMapTexture_ptr texture;
+	CubeMapTexturePtr texture;
 protected:
 	SkyboxMaterial() {};
 };
@@ -106,9 +145,9 @@ protected:
 class DepthMapMaterial : public Material
 {
 public:
-	static DepthMapMaterial_ptr Create();
+	static DepthMapMaterialPtr Create();
 
-	DepthTexture_ptr depthTexture;
+	DepthTexturePtr depthTexture;
 	float nearPlane;
 	float farPlane;
 	bool perspective;

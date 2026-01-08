@@ -5,61 +5,112 @@
 
 #include <glm/fwd.hpp>
 
-#include "../util/SharedPointer.h"
 #include "../math/BoundingBox.h"
 #include "../light/LightModel.h"
 #include "../animation/TimeObserver.h"
 #include "../camera/Camera.h"
+#include "../input/KeyboardObserver.h"
+#include "../input/MouseObserver.h"
 
 //fwd decls
 class ShaderBase;
 class InputHandler;
-	
-SHARED_PTR_CLASS_DECL(Scene);
-SHARED_PTR_CLASS_DECL(Shape);
-SHARED_PTR_CLASS_DECL(Skybox);
-SHARED_PTR_CLASS_DECL(WireCube);
-SHARED_PTR_CLASS_DECL(InspectionCameraAdapter);
-SHARED_PTR_CLASS_DECL(FirstPersonCameraAdapter);
-SHARED_PTR_CLASS_DECL(Framebuffer);
-SHARED_PTR_CLASS_DECL(Viewport);
-SHARED_PTR_CLASS_DECL(AmbientLight)
 
-class Scene : public TimeObserver, public CameraObserver, public std::enable_shared_from_this<Scene>
+class Scene;
+using ScenePtr = std::shared_ptr<Scene>;
+using SceneConstPtr = std::shared_ptr<const Scene>;
+using SceneWeakPtr = std::weak_ptr<Scene>;
+
+class Shape;
+using ShapePtr = std::shared_ptr<Shape>;
+using ShapeConstPtr = std::shared_ptr<const Shape>;
+using ShapeWeakPtr = std::weak_ptr<Shape>;
+
+class Skybox;
+using SkyboxPtr = std::shared_ptr<Skybox>;
+using SkyboxConstPtr = std::shared_ptr<const Skybox>;
+using SkyboxWeakPtr = std::weak_ptr<Skybox>;
+
+class WireCube;
+using WireCubePtr = std::shared_ptr<WireCube>;
+using WireCubeConstPtr = std::shared_ptr<const WireCube>;
+using WireCubeWeakPtr = std::weak_ptr<WireCube>;
+
+class InspectionCameraAdapter;
+using InspectionCameraAdapterPtr = std::shared_ptr<InspectionCameraAdapter>;
+using InspectionCameraAdapterConstPtr = std::shared_ptr<const InspectionCameraAdapter>;
+using InspectionCameraAdapterWeakPtr = std::weak_ptr<InspectionCameraAdapter>;
+
+class FirstPersonCameraAdapter;
+using FirstPersonCameraAdapterPtr = std::shared_ptr<FirstPersonCameraAdapter>;
+using FirstPersonCameraAdapterConstPtr = std::shared_ptr<const FirstPersonCameraAdapter>;
+using FirstPersonCameraAdapterWeakPtr = std::weak_ptr<FirstPersonCameraAdapter>;
+
+class Framebuffer;
+using FramebufferPtr = std::shared_ptr<Framebuffer>;
+using FramebufferConstPtr = std::shared_ptr<const Framebuffer>;
+using FramebufferWeakPtr = std::weak_ptr<Framebuffer>;
+
+class Viewport;
+using ViewportPtr = std::shared_ptr<Viewport>;
+using ViewportConstPtr = std::shared_ptr<const Viewport>;
+using ViewportWeakPtr = std::weak_ptr<Viewport>;
+
+class AmbientLight;
+using AmbientLightPtr = std::shared_ptr<AmbientLight>;
+using AmbientLightConstPtr = std::shared_ptr<const AmbientLight>;
+using AmbientLightWeakPtr = std::weak_ptr<AmbientLight>;
+
+class Scene : public TimeObserver, public CameraObserver, public KeyboardObserver, public MouseObserver, public std::enable_shared_from_this<Scene>
 {
 public:		
 
-	static Scene_ptr Create(const Camera_ptr& cam, bool has_frambufer = true);
+	static ScenePtr Create(const CameraPtr& cam, bool has_frambufer = true);
 
-	Scene(const Camera_ptr& cam, bool has_framebufer);
+	Scene(const CameraPtr& cam, bool has_framebufer);
 
 	virtual ~Scene();
 
-	void Render(const Viewport_ptr& viewport);
+	void Render(const ViewportPtr& viewport);
 
-	void AddShape(const Shape_ptr& shape);
-	void AddShapes(const std::vector<Shape_ptr> shapes);
-	void AddLight(const PointLight_ptr& shape);
-	void AddLight(const SpotLight_ptr& light);
-	void SetLight(const DirectionalLight_ptr& light);
-	void SetLight(const AmbientLight_ptr& light);
-	void SetSkybox(const Skybox_ptr& skybox);
-	void SetCamera(const Camera_ptr& cam);
+	void AddShape(const ShapePtr& shape);
+	void AddShapes(const std::vector<ShapePtr> shapes);
+	void AddLight(const PointLightPtr& shape);
+	void AddLight(const SpotLightPtr& light);
+	void SetLight(const DirectionalLightPtr& light);
+	void SetLight(const AmbientLightPtr& light);
+	void SetSkybox(const SkyboxPtr& skybox);
+	void SetCamera(const CameraPtr& cam);
 
-	AABBox BoundingBox() const;
+	[[nodiscard]] AABBox BoundingBox() const;
 
 	void SetRenderBoundingBoxes(bool enable);
-	bool RenderBoundingBoxes() const { return renderBoundingBoxes; };
+	[[nodiscard]] bool RenderBoundingBoxes() const { return renderBoundingBoxes; };
 
 	void SetRenderLightRepresentation(bool enable);
-	bool RenderLightRepresentation() const { return renderLightRepresentation; };
+	[[nodiscard]] bool RenderLightRepresentation() const { return renderLightRepresentation; };
+
+	void SetUseInspectionMode(bool enable);
+	[[nodiscard]] bool UseInspectionMode() const { return useInspectionMode; };
 
 	void TimeUpdate(double time) override;
 
-	Camera_ptr activeCamera;
-	LightModel_ptr lightModel;
-	std::vector<Shape_ptr> objects;
-	Skybox_ptr skybox;
+	// KeyboardObserver interface
+	void OnKey(const Input::Key key, const Input::Modifier mod) override;
+	void OnKeyStateChange(const Input::Key key, const Input::KeyState state) override;
+
+	// MouseObserver interface
+	void OnMouseMove(const glm::vec2& position) override;
+	void OnMouseDrag(const glm::vec2& position) override;
+	void OnMouseClick(Input::MouseButton button, Input::Direction state, const glm::vec2& position) override;
+	void OnMouseWheel(Input::Direction direction, const glm::vec2& position) override;
+
+	void ToggleCameraMode();
+
+	CameraPtr activeCamera;
+	LightModelPtr lightModel;
+	std::vector<ShapePtr> objects;
+	SkyboxPtr skybox;
 	std::string name;
 	
 	
@@ -80,11 +131,13 @@ protected:
 
 	virtual void CameraChanged() override;
 
-	InspectionCameraAdapter_ptr inspectionCamAdapter;
-	FirstPersonCameraAdapter_ptr fpCamAdapter;
+	InspectionCameraAdapterPtr inspectionCamAdapter;
+	FirstPersonCameraAdapterPtr fpCamAdapter;
+	bool useInspectionMode;
+	glm::vec2 lastMousePosition;
 
-	Framebuffer_ptr framebuffer;
-	Shape_ptr wireCube;
+	FramebufferPtr framebuffer;
+	ShapePtr wireCube;
 
 	bool renderLightRepresentation;
 	bool renderBoundingBoxes;

@@ -2,18 +2,22 @@
 
 #include "ShaderBase.h"
 #include <glm/mat4x4.hpp>
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(ShadowDepthShader)
+class ShadowDepthShader;
+using ShadowDepthShaderPtr = std::shared_ptr<ShadowDepthShader>;
+using ShadowDepthShaderConstPtr = std::shared_ptr<const ShadowDepthShader>;
+using ShadowDepthShaderWeakPtr = std::weak_ptr<ShadowDepthShader>;
 
 class ShadowDepthShader : public ShaderBase
 {
 public:
 
-	static ShadowDepthShader_ptr Create();
+	static ShadowDepthShaderPtr Create();
 
 	ShadowDepthShader();
 
-	virtual bool Use(const Scene_ptr& scene, const glm::mat4& modelTransform) override;
+	virtual bool Use(const ScenePtr& scene, const glm::mat4& modelTransform) override;
 
 	void SetLightSpaceMatrix(const glm::mat4& lightSpaceMatrix);
 

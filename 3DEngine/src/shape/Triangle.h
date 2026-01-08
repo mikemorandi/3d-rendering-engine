@@ -1,8 +1,13 @@
 #pragma once
 
 #include "RenderMesh.h"
+#include "../util/SharedPointer.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(Triangle);
+class Triangle;
+using TrianglePtr = std::shared_ptr<Triangle>;
+using TriangleConstPtr = std::shared_ptr<const Triangle>;
+using TriangleWeakPtr = std::weak_ptr<Triangle>;
 
 class Triangle : public RenderMesh
 {

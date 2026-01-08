@@ -2,7 +2,7 @@
 #include "../core/gl.h"
 
 
-Viewport_ptr Viewport::Create(int width, int height)
+ViewportPtr Viewport::Create(int width, int height)
 {
 	return std::make_shared<Viewport>(width, height);
 }

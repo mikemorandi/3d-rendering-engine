@@ -19,9 +19,9 @@ using glm::ivec3;
 
 namespace fs = std::filesystem;
 
-IndexedRawMesh_ptr ObjLoader::LoadObj(std::istream& istr, const std::filesystem::path& path)
+IndexedRawMeshPtr ObjLoader::LoadObj(std::istream& istr, const std::filesystem::path& path)
 {	
-	IndexedRawMesh_ptr newMesh = IndexedRawMesh::Create();
+	IndexedRawMeshPtr newMesh = IndexedRawMesh::Create();
 	newMesh->meshPath = path.string();
 
 	std::string groupName;	
@@ -210,11 +210,11 @@ std::string& trim(std::string& str)
 	return str;
 }
 
-bool ObjLoader::LoadMtllib(std::istream& istr, IndexedRawMesh_ptr newMesh)
+bool ObjLoader::LoadMtllib(std::istream& istr, IndexedRawMeshPtr newMesh)
 {
 	std::string line;
 
-	WavefrontObjMaterial_ptr mat;
+	WavefrontObjMaterialPtr mat;
 	
 	while ( istr.good() )
 	{
@@ -302,14 +302,14 @@ bool ObjLoader::LoadMtllib(std::istream& istr, IndexedRawMesh_ptr newMesh)
 	return newMesh->materials.size() > 0;
 }
 
-IndexedRawMesh_ptr ObjLoader::LoadObjFile(const std::filesystem::path& path)
+IndexedRawMeshPtr ObjLoader::LoadObjFile(const std::filesystem::path& path)
 {
 	currentFile = path.string();
 
 	std::ifstream myfile;
 	myfile.open(path);
 
-	IndexedRawMesh_ptr newMesh;
+	IndexedRawMeshPtr newMesh;
 
 	std::string line;
 	if (myfile.is_open())

@@ -6,7 +6,7 @@
 
 #include <unordered_map>
 
-WavefrontObjMaterial_ptr WavefrontObjMaterial::Create(std::string name)
+WavefrontObjMaterialPtr WavefrontObjMaterial::Create(std::string name)
 {
 	return  std::make_shared<WavefrontObjMaterial>(name);
 }
@@ -224,9 +224,9 @@ bool IndexedRawMesh::ComputeTangents()
 	return true;
 }
 
-OpenGLRawMesh_ptr IndexedRawMesh::ConvertToOpenGLMesh() const
+OpenGLRawMeshPtr IndexedRawMesh::ConvertToOpenGLMesh() const
 {
-	OpenGLRawMesh_ptr gl_mesh = OpenGLRawMesh::Create();
+	OpenGLRawMeshPtr gl_mesh = OpenGLRawMesh::Create();
 
 	gl_mesh->name = name;
 	gl_mesh->meshPath = meshPath;

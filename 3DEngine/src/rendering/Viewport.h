@@ -1,14 +1,17 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(Viewport);
+class Viewport;
+using ViewportPtr = std::shared_ptr<Viewport>;
+using ViewportConstPtr = std::shared_ptr<const Viewport>;
+using ViewportWeakPtr = std::weak_ptr<Viewport>;
 
 class Viewport
 {
 public:
-	
-	static Viewport_ptr Create(int width, int height);
+
+	static ViewportPtr Create(int width, int height);
 
 	Viewport(int width, int height);
 
@@ -20,6 +23,5 @@ public:
 
 	int width;
 	int height;
-	//TODO: projection matrix
 
 };

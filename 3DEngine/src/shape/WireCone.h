@@ -1,12 +1,16 @@
 #pragma once
 #include "RenderMesh.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(WireCone);
+class WireCone;
+using WireConePtr = std::shared_ptr<WireCone>;
+using WireConeConstPtr = std::shared_ptr<const WireCone>;
+using WireConeWeakPtr = std::weak_ptr<WireCone>;
 
 class WireCone : public RenderMesh
 {
 public:
-	static WireCone_ptr Create(float opening_angle, float height);
+	static WireConePtr Create(float opening_angle, float height);
 
 	WireCone(float opening_angle, float height);
 

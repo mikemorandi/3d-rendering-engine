@@ -26,7 +26,7 @@ bool Framebuffer::IsBound() const
 	return static_cast<GLuint>(boundFbo) == bufferHandle;
 }
 
-bool Framebuffer::Attach(const Texture2D_ptr& texture, Attachment target)
+bool Framebuffer::Attach(const Texture2DPtr& texture, Attachment target)
 {
 	
 	if (texture && texture->IsValid())
@@ -84,7 +84,7 @@ bool Framebuffer::AttachDepthRenderBuffer()
 
 GLuint Framebuffer::CreateRenderBuffer(GLenum format)
 {
-	Texture2D_ptr colorTex = TextureAttachment(Attachment::Color);
+	Texture2DPtr colorTex = TextureAttachment(Attachment::Color);
 
 	if (colorTex && colorTex->IsValid())
 	{
@@ -135,7 +135,7 @@ GLuint Framebuffer::Renderbuffer(Attachment target) const
 	return renderBuferHandle[TextureIndex(target)];
 }
 
-Texture2D_ptr Framebuffer::TextureAttachment(Attachment target) const
+Texture2DPtr Framebuffer::TextureAttachment(Attachment target) const
 {
 	return attachedTexture[TextureIndex(target)];
 }

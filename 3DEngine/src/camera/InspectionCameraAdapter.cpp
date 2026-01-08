@@ -12,7 +12,7 @@
 using glm::vec3;
 using glm::vec4;
 
-InspectionCameraAdapter::InspectionCameraAdapter(const Camera_ptr& cam) 
+InspectionCameraAdapter::InspectionCameraAdapter(const CameraPtr& cam) 
 	: CameraAdapter(cam)
 	, orbitCenter(glm::vec3(0,0,0))
 {

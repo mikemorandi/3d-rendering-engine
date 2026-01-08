@@ -3,8 +3,12 @@
 #include "PointLight.h"
 
 #include "../camera/Frame.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(SpotLight);
+class SpotLight;
+using SpotLightPtr = std::shared_ptr<SpotLight>;
+using SpotLightConstPtr = std::shared_ptr<const SpotLight>;
+using SpotLightWeakPtr = std::weak_ptr<SpotLight>;
 
 /**
 *      pos
@@ -21,7 +25,7 @@ class SpotLight : public PointLight, public std::enable_shared_from_this<SpotLig
 {
 public:
 
-	static SpotLight_ptr Create(const glm::vec3& direction, float cutoffAngle, float exponent);
+	static SpotLightPtr Create(const glm::vec3& direction, float cutoffAngle, float exponent);
 
 	SpotLight(const glm::vec3& direction, float cutoffAngle, float exponent);
 

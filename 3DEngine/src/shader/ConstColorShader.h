@@ -1,10 +1,18 @@
 #pragma once
 
 #include "ShaderBase.h"
+#include "../util/SharedPointer.h"
+#include <memory>
 #include "MaterialShader.h"
 
-SHARED_PTR_CLASS_DECL(ConstColorShader)
-SHARED_PTR_CLASS_DECL(ConstantColorMaterial);
+class ConstColorShader;
+using ConstColorShaderPtr = std::shared_ptr<ConstColorShader>;
+using ConstColorShaderConstPtr = std::shared_ptr<const ConstColorShader>;
+using ConstColorShaderWeakPtr = std::weak_ptr<ConstColorShader>;
+class ConstantColorMaterial;
+using ConstantColorMaterialPtr = std::shared_ptr<ConstantColorMaterial>;
+using ConstantColorMaterialConstPtr = std::shared_ptr<const ConstantColorMaterial>;
+using ConstantColorMaterialWeakPtr = std::weak_ptr<ConstantColorMaterial>;
 
 class ConstColorShader : public MaterialShader
 {
@@ -12,13 +20,13 @@ public:
 	
 	SHARED_PTR_FACTORY(ConstColorShader);
 
-	virtual bool Use(const Scene_ptr& scene, const glm::mat4& modelTransform) override;
+	virtual bool Use(const ScenePtr& scene, const glm::mat4& modelTransform) override;
 
-	virtual bool SetMaterial(const Material_cptr& material) override;
+	virtual bool SetMaterial(const MaterialConstPtr& material) override;
 
 	ConstColorShader();
 
-	ConstantColorMaterial_cptr material;
+	ConstantColorMaterialConstPtr material;
 
 };
 

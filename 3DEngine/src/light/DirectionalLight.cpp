@@ -9,9 +9,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-DirectionalLight_ptr DirectionalLight::Create(const glm::vec3& direction)
+DirectionalLightPtr DirectionalLight::Create(const glm::vec3& direction)
 {
-	DirectionalLight_ptr ptr = DirectionalLight_ptr(new DirectionalLight(direction));
+	DirectionalLightPtr ptr = DirectionalLightPtr(new DirectionalLight(direction));
 	return ptr;
 }
 
@@ -21,7 +21,7 @@ DirectionalLight::DirectionalLight(const glm::vec3& direction)
 
 	visMesh = Util::CreateWireBox();
 
-	ConstantColorMaterial_ptr mat = ConstantColorMaterial::Create();
+	ConstantColorMaterialPtr mat = ConstantColorMaterial::Create();
 	mat->color = color;
 	visMesh->SetMaterial(mat);
 	visMesh->SetWorldTransform(glm::scale(glm::mat4(1.0), glm::vec3(0.f)));
@@ -42,7 +42,7 @@ void DirectionalLight::SetDirection(const glm::vec3& dir)
 	direction = glm::normalize(dir);
 }
 
-Shape_ptr DirectionalLight::ModelRepresentation() const
+ShapePtr DirectionalLight::ModelRepresentation() const
 {
 	return visMesh;
 }

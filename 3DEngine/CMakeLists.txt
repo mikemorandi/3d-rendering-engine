@@ -26,7 +26,6 @@ add_library(3DEngine STATIC
     src/core/GLErrorHandler.cpp
     src/enums.h
     src/error.h
-    src/common.cpp
 
     # Input
     src/input/InputHandler.h

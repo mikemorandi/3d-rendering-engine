@@ -1,10 +1,15 @@
 #pragma once
 
 #include "Light.h"
+#include "../util/SharedPointer.h"
+#include <memory>
 
 #include <glm/fwd.hpp>
 
-SHARED_PTR_CLASS_DECL(AmbientLight);
+class AmbientLight;
+using AmbientLightPtr = std::shared_ptr<AmbientLight>;
+using AmbientLightConstPtr = std::shared_ptr<const AmbientLight>;
+using AmbientLightWeakPtr = std::weak_ptr<AmbientLight>;
 
 
 class AmbientLight : public Light

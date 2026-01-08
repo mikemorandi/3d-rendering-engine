@@ -133,7 +133,7 @@ void PhongShader::SetupMaterialTextures()
 	SetUniform("BumpTexIsNormalMap", bumpIsNormalMap);
 }
 
-bool PhongShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
+bool PhongShader::Use(const ScenePtr& scene, const glm::mat4& modelTransform)
 {
 	// Call base class to activate shader and set up matrices
 	bool ok = MaterialShader::Use(scene, modelTransform);
@@ -308,12 +308,12 @@ void PhongShader::UnUse()
 	}
 }
 
-void PhongShader::SetLightAndModel(const Scene_ptr& scene)
+void PhongShader::SetLightAndModel(const ScenePtr& scene)
 {
 	// Set up scene lights
 	if (scene && scene->lightModel)
 	{
-		LightModel_ptr lightModel = scene->lightModel;
+		LightModelPtr lightModel = scene->lightModel;
 
 		// Set light counts
 		SetUniform("NumPointLights", static_cast<int>(lightModel->pointLights.size()));
@@ -338,20 +338,20 @@ void PhongShader::SetLightAndModel(const Scene_ptr& scene)
 	}
 }
 
-bool PhongShader::SetMaterial(const Material_cptr& material)
+bool PhongShader::SetMaterial(const MaterialConstPtr& material)
 {
 	// Clear previous material references
 	phongMaterial = nullptr;
 	textureMaterial = nullptr;
 
 	// Try to cast to the most specific type first (TextureMaterial inherits from PhongMaterial)
-	if (TextureMaterial_cptr mat = std::dynamic_pointer_cast<const TextureMaterial>(material))
+	if (TextureMaterialConstPtr mat = std::dynamic_pointer_cast<const TextureMaterial>(material))
 	{
 		textureMaterial = mat;
 		phongMaterial = mat;
 		return true;
 	}
-	else if (PhongMaterial_cptr mat = std::dynamic_pointer_cast<const PhongMaterial>(material))
+	else if (PhongMaterialConstPtr mat = std::dynamic_pointer_cast<const PhongMaterial>(material))
 	{
 		phongMaterial = mat;
 		return true;

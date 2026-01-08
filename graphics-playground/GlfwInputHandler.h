@@ -18,11 +18,13 @@ public:
 	static void click(GLFWwindow* window, int button, int action, int mods);
 	static void wheel(GLFWwindow* window, double x, double y);
 	static void mouseMove(GLFWwindow* window, double x, double y);
-	
+
 	static void key(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-	virtual void AddMouseObserver(const MouseObserver_wptr& observer);
-	virtual void AddKeyboardObserver(const KeyboardObserver_wptr& observer);
+	void SetWindow(GLFWwindow* window);
+
+	virtual void AddMouseObserver(const MouseObserverWeakPtr& observer);
+	virtual void AddKeyboardObserver(const KeyboardObserverWeakPtr& observer);
 
 protected:
 
@@ -33,12 +35,19 @@ protected:
 	void handleClick(const glm::vec2& position, int button, int action, int mods);
 	void handleWheel(const glm::vec2& position, const glm::vec2& offsets);
 	void handleKey(GLFWwindow* window, int key, int modifier);
+	void handleKeyStateChange(int key, int action);
+	void toggleFullscreen();
 
-	std::vector<MouseObserver_wptr> mouseObservers;
-	std::vector<KeyboardObserver_wptr> keyboardObservers;
-	
+	std::vector<MouseObserverWeakPtr> mouseObservers;
+	std::vector<KeyboardObserverWeakPtr> keyboardObservers;
+
 	bool isDragging;
 	glm::vec2 lastCursorPos;
+
+	GLFWwindow* window;
+	bool isFullscreen;
+	int windowedPosX, windowedPosY;
+	int windowedWidth, windowedHeight;
 
 	static GlfwInputHandler instance;
 

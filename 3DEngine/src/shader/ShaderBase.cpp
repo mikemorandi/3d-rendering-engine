@@ -71,7 +71,7 @@ void ShaderBase::AfterUniformSet()
 		glUseProgram(currentProgram);
 }
 
-void ShaderBase::UpdateTransforms(const Camera_ptr& cam, const glm::mat4& modelTransform)
+void ShaderBase::UpdateTransforms(const CameraPtr& cam, const glm::mat4& modelTransform)
 {
 	glm::mat4 modelViewMatrix = cam->viewMatrix * modelTransform;
 	
@@ -201,14 +201,14 @@ bool ShaderBase::LoadShader( const std::string& vertexSource,
 
 }
 
-bool ShaderBase::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
+bool ShaderBase::Use(const ScenePtr& scene, const glm::mat4& modelTransform)
 {
 	bool ok = GLSLProgram::Use();
 	UpdateTransforms(scene->activeCamera,modelTransform);
 	return ok;
 }
 
-VertexAttributeInfo_ptr ShaderBase::GetVertexAttributeInfo() const 
+VertexAttributeInfoPtr ShaderBase::GetVertexAttributeInfo() const 
 { 
 	return vertexAttribInfo; 
 }

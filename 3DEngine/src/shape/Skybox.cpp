@@ -4,7 +4,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-Skybox::Skybox(const SkyboxMaterial_ptr& material) 
+Skybox::Skybox(const SkyboxMaterialPtr& material) 
 	: Box()
 {
 	SetWorldTransform(glm::scale(glm::mat4(1.0),glm::vec3(50,50,50)));

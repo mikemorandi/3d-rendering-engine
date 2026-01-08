@@ -34,7 +34,7 @@ void OrthogonalCamera::UpdateProjectionMatrix()
 	NotifyObservers();
 }
 
-void OrthogonalCamera::ViewportChanged(const Viewport_ptr& viewport)
+void OrthogonalCamera::ViewportChanged(const ViewportPtr& viewport)
 {
 	frustum.right = static_cast<float>(viewport->width);
 	frustum.bottom = static_cast<float>(viewport->height);

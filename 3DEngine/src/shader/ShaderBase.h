@@ -2,14 +2,35 @@
 
 #include "GLSLProgram.h"
 #include "../enums.h"
+#include "../util/SharedPointer.h"
 
 #include <map>
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(ShaderBase)
-SHARED_PTR_CLASS_DECL(VertexAttributeInfo)
-SHARED_PTR_CLASS_DECL(Scene)
-SHARED_PTR_CLASS_DECL(Camera)
-SHARED_PTR_CLASS_DECL(Material)
+class ShaderBase;
+using ShaderBasePtr = std::shared_ptr<ShaderBase>;
+using ShaderBaseConstPtr = std::shared_ptr<const ShaderBase>;
+using ShaderBaseWeakPtr = std::weak_ptr<ShaderBase>;
+
+class VertexAttributeInfo;
+using VertexAttributeInfoPtr = std::shared_ptr<VertexAttributeInfo>;
+using VertexAttributeInfoConstPtr = std::shared_ptr<const VertexAttributeInfo>;
+using VertexAttributeInfoWeakPtr = std::weak_ptr<VertexAttributeInfo>;
+
+class Scene;
+using ScenePtr = std::shared_ptr<Scene>;
+using SceneConstPtr = std::shared_ptr<const Scene>;
+using SceneWeakPtr = std::weak_ptr<Scene>;
+
+class Camera;
+using CameraPtr = std::shared_ptr<Camera>;
+using CameraConstPtr = std::shared_ptr<const Camera>;
+using CameraWeakPtr = std::weak_ptr<Camera>;
+
+class Material;
+using MaterialPtr = std::shared_ptr<Material>;
+using MaterialConstPtr = std::shared_ptr<const Material>;
+using MaterialWeakPtr = std::weak_ptr<Material>;
 
 class VertexAttributeInfo
 {
@@ -36,9 +57,9 @@ public:
 	GLint GetAttributeChannel(GLSLShader::VertexAttribute attribute);
 
 	/* \brief Returns the necessary vertex attribute info the shader uses */
-	virtual VertexAttributeInfo_ptr GetVertexAttributeInfo() const;
+	virtual VertexAttributeInfoPtr GetVertexAttributeInfo() const;
 
-	virtual bool Use(const Scene_ptr& scene, const glm::mat4& modelTransform);
+	virtual bool Use(const ScenePtr& scene, const glm::mat4& modelTransform);
 
 	const std::string& GetName() const;
 
@@ -53,10 +74,10 @@ protected:
 
 	bool HandleIncludes(std::string& fragmentSource);
 
-	virtual void UpdateTransforms(const Camera_ptr& cam, const glm::mat4& modelTransform);
+	virtual void UpdateTransforms(const CameraPtr& cam, const glm::mat4& modelTransform);
 
 	GLint GetCurentProgram();
-	
+
 	void BeforeUniformSet();
 	void AfterUniformSet();
 
@@ -66,7 +87,7 @@ protected:
 	GLint currentProgram;
 
 private:
-	VertexAttributeInfo_ptr vertexAttribInfo;
+	VertexAttributeInfoPtr vertexAttribInfo;
 	
 };
 

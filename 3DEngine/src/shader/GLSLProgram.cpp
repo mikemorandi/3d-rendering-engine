@@ -137,9 +137,9 @@ void GLSLProgram::UnUse()
 {
 	glUseProgram(0);
 }
-void GLSLProgram::SetUniform(const GLchar *name, bool value)
+void GLSLProgram::SetUniform(std::string_view name, bool value)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0) 
 	{
 		glUniform1f(loc, value);
@@ -152,9 +152,9 @@ void GLSLProgram::SetUniform(const GLchar *name, bool value)
 	}
 }
 
-void GLSLProgram::SetUniform(const GLchar *name, float value)
+void GLSLProgram::SetUniform(std::string_view name, float value)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0) 
 	{
 		glUniform1f(loc, value);
@@ -167,9 +167,9 @@ void GLSLProgram::SetUniform(const GLchar *name, float value)
 	}
 }
 
-void GLSLProgram::SetUniform(const GLchar *name, int value)
+void GLSLProgram::SetUniform(std::string_view name, int value)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0) 
 	{
 		glUniform1i(loc, value);
@@ -182,9 +182,9 @@ void GLSLProgram::SetUniform(const GLchar *name, int value)
 	}
 }
 
-void GLSLProgram::SetUniform(const GLchar *name, unsigned int value)
+void GLSLProgram::SetUniform(std::string_view name, unsigned int value)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0) 
 	{
 		glUniform1i(loc, value);
@@ -197,9 +197,9 @@ void GLSLProgram::SetUniform(const GLchar *name, unsigned int value)
 	}
 }
 
-void GLSLProgram::SetUniform(const GLchar *name, const glm::vec2& v)
+void GLSLProgram::SetUniform(std::string_view name, const glm::vec2& v)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0) 
 	{
 		glUniform2f(loc, v.x, v.y);
@@ -212,9 +212,9 @@ void GLSLProgram::SetUniform(const GLchar *name, const glm::vec2& v)
 	}
 }
 
-void GLSLProgram::SetUniform(const GLchar *name, const glm::vec3& v)
+void GLSLProgram::SetUniform(std::string_view name, const glm::vec3& v)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0) 
 	{
 		glUniform3f(loc, v.x, v.y, v.z);
@@ -227,9 +227,9 @@ void GLSLProgram::SetUniform(const GLchar *name, const glm::vec3& v)
 	}
 }
 
-void GLSLProgram::SetUniform(const GLchar *name, const glm::ivec2& v)
+void GLSLProgram::SetUniform(std::string_view name, const glm::ivec2& v)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0)
 	{
 		glUniform2i(loc, v.x, v.y);
@@ -243,9 +243,9 @@ void GLSLProgram::SetUniform(const GLchar *name, const glm::ivec2& v)
 }
 
 
-void GLSLProgram::SetUniform(const GLchar *name, const glm::ivec3& v)
+void GLSLProgram::SetUniform(std::string_view name, const glm::ivec3& v)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0)
 	{
 		glUniform3i(loc, v.x, v.y, v.z);
@@ -258,9 +258,9 @@ void GLSLProgram::SetUniform(const GLchar *name, const glm::ivec3& v)
 	}
 }
 
-void GLSLProgram::SetUniform(const GLchar *name, const glm::ivec4& v)
+void GLSLProgram::SetUniform(std::string_view name, const glm::ivec4& v)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0)
 	{
 		glUniform4i(loc, v.x, v.y, v.z, v.w);
@@ -273,9 +273,9 @@ void GLSLProgram::SetUniform(const GLchar *name, const glm::ivec4& v)
 	}
 }
 
-void GLSLProgram::SetUniform(const char *name, const glm::vec4& v)
+void GLSLProgram::SetUniform(std::string_view name, const glm::vec4& v)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0) 
 	{
 		glUniform4f(loc, v.x, v.y, v.z, v.w);
@@ -288,9 +288,9 @@ void GLSLProgram::SetUniform(const char *name, const glm::vec4& v)
 	}
 }
 
-void GLSLProgram::SetUniform(const GLchar *name, const glm::mat3& m)
+void GLSLProgram::SetUniform(std::string_view name, const glm::mat3& m)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0) 
 	{
 		glUniformMatrix3fv(loc, 1, GL_FALSE, &m[0][0]);
@@ -303,9 +303,9 @@ void GLSLProgram::SetUniform(const GLchar *name, const glm::mat3& m)
 	}
 }
 
-void GLSLProgram::SetUniform(const GLchar *name, const glm::mat4& m)
+void GLSLProgram::SetUniform(std::string_view name, const glm::mat4& m)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc >= 0) 
 	{
 		glUniformMatrix4fv(loc, 1, GL_FALSE, &m[0][0]);
@@ -318,12 +318,12 @@ void GLSLProgram::SetUniform(const GLchar *name, const glm::mat4& m)
 	}
 }
 
-void GLSLProgram::SetUniformArray(const GLchar *name, 
-								  GLfloat *v, 
-								  int elementSize, 
+void GLSLProgram::SetUniformArray(std::string_view name,
+								  GLfloat *v,
+								  int elementSize,
 								  int count)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc == -1) 
 	{
 #if _DEBUG
@@ -348,12 +348,12 @@ void GLSLProgram::SetUniformArray(const GLchar *name,
 	}
 }
 
-void GLSLProgram::SetUniformArray(const GLchar *name,
+void GLSLProgram::SetUniformArray(std::string_view name,
 	GLint *v,
 	int elementSize,
 	int count)
 {
-	GLint loc = glGetUniformLocation(programHandle, name);
+	GLint loc = glGetUniformLocation(programHandle, name.data());
 	if (loc == -1)
 	{
 #if _DEBUG

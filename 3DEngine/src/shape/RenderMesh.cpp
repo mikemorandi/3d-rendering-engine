@@ -11,18 +11,19 @@
 #include "../error.h"
 
 #include <set>
+#include <unordered_map>
 #include <filesystem>
 
 using namespace GLSLShader;
 
 namespace fs = std::filesystem;
 
-RenderMesh_ptr RenderMesh::Create(const OpenGLRawMesh_ptr& mesh)
+RenderMeshPtr RenderMesh::Create(const OpenGLRawMeshPtr& mesh)
 {
 	return std::make_shared<RenderMesh>(mesh);
 }
 
-RenderMesh::RenderMesh(const OpenGLRawMesh_ptr&  rawMesh)
+RenderMesh::RenderMesh(const OpenGLRawMeshPtr&  rawMesh)
 : RenderMesh()
 {
 	InitFromRawMesh(rawMesh);
@@ -37,7 +38,7 @@ RenderMesh::RenderMesh(DrawMode mode)
 	Init();
 }
 
-void RenderMesh::InitFromRawMesh(const OpenGLRawMesh_ptr& rawMesh)
+void RenderMesh::InitFromRawMesh(const OpenGLRawMeshPtr& rawMesh)
 {
 	if(rawMesh)
 	{
@@ -48,17 +49,17 @@ void RenderMesh::InitFromRawMesh(const OpenGLRawMesh_ptr& rawMesh)
 
 		SetPositions(rawMesh->vertices, rawMesh->triangleIndices, &rawMesh->groupRanges);
 
-		std::vector<PhongMaterial_ptr> meshMaterials;
+		std::vector<PhongMaterialPtr> meshMaterials;
 
 		fs::path base_path = Util::ExtractBaseFolder(rawMesh->meshPath);
 
 		// Mesh has material descriptors
-		for (WavefrontObjMaterial_ptr& mat : rawMesh->materials)
+		for (WavefrontObjMaterialPtr& mat : rawMesh->materials)
 		{
-			PhongMaterial_ptr pMaterial;
+			PhongMaterialPtr pMaterial;
 			if (mat->HasTextures())
 			{
-				TextureMaterial_ptr texMat = TextureMaterial::Create();
+				TextureMaterialPtr texMat = TextureMaterial::Create();
 				pMaterial = texMat;
 
 				texMat->InitFromWavefrontMaterial(mat, base_path);
@@ -72,17 +73,24 @@ void RenderMesh::InitFromRawMesh(const OpenGLRawMesh_ptr& rawMesh)
 			meshMaterials.push_back(pMaterial);
 		}
 
-		// TODO: Refactor this (ugly, inefficient hack)
-		for(auto& matName : rawMesh->groupMaterial)
+		// Build material name -> material object lookup map for efficient lookup
+		std::unordered_map<std::string, PhongMaterialPtr> materialLookup;
+		for (auto& mat : meshMaterials)
 		{
-			for (auto& mat : meshMaterials)
-			{
-				std::string mn = mat->Name();
+			materialLookup[mat->Name()] = mat;
+		}
 
-				if(matName == mn)
-				{
-					materialsNew.push_back(mat);
-				}
+		// Map group materials using the lookup
+		materialsNew.reserve(rawMesh->groupMaterial.size());
+		for (const auto& matName : rawMesh->groupMaterial)
+		{
+			if (auto it = materialLookup.find(matName); it != materialLookup.end())
+			{
+				materialsNew.push_back(it->second);
+			}
+			else
+			{
+				Warn("Material '" + matName + "' referenced by group not found in mesh materials");
 			}
 		}
 
@@ -191,11 +199,11 @@ bool RenderMesh::SetPositions(const std::vector<glm::vec3>& positions, const std
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObjects[i]);
 		if(glIsBuffer(indexBufferObjects[i]))
-		{		
-			std::pair<int,int>& range = ranges[i];
-			int numIndices = (range.second - range.first + 1) * primitiveSize;
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(int), &indices[range.first * primitiveSize], GL_STATIC_DRAW);
-		} 
+		{
+			auto& [first, last] = ranges[i];
+			int numIndices = (last - first + 1) * primitiveSize;
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(int), &indices[first * primitiveSize], GL_STATIC_DRAW);
+		}
 		else
 		{
 			success = false;
@@ -367,20 +375,17 @@ void RenderMesh::Init()
 	}
 }
 
-void RenderMesh::MapVertexAttributes(ShaderBase_ptr shader) const
+void RenderMesh::MapVertexAttributes(ShaderBasePtr shader) const
 {
 	// Bind VAO first - all subsequent state changes will be captured by the VAO
 	glBindVertexArray(vaoHandle);
 
 	if (auto vai = shader->GetVertexAttributeInfo())
 	{
-		for (auto& kv : vai->mapping) {
+		for (auto& [attrib, channel] : vai->mapping) {
 
-			if (kv.second >= 0)
+			if (channel >= 0)
 			{
-				GLSLShader::VertexAttribute attrib = kv.first;
-				int channel = kv.second;
-
 				if (vtxAttribSet[attrib])
 				{
 					if (!MapVertexAttribute(attrib, channel))
@@ -393,26 +398,26 @@ void RenderMesh::MapVertexAttributes(ShaderBase_ptr shader) const
 	// VAO remains bound after this function - it will be used for drawing
 }
 
-void RenderMesh::Render(const Scene_ptr& scene) const
+void RenderMesh::Render(const ScenePtr& scene) const
 {
-	ShaderLibrary_ptr sl = ShaderLibrary::Instance();
+	ShaderLibraryPtr sl = ShaderLibrary::Instance();
 
 	//Render individual index groups if available
 	int numRanges = static_cast<int>(ranges.size());
 
-	std::set<ShaderBase_ptr> verxtex_attribs_mapped;
+	std::set<ShaderBasePtr> verxtex_attribs_mapped;
 
 	auto render_pass = [&](bool transparent)
 	{
 		for (size_t i = 0; i < static_cast<size_t>(numRanges); i++)
 		{
-			Material_ptr current_material = (i < materialsNew.size())
+			MaterialPtr current_material = (i < materialsNew.size())
 				? materialsNew[i]
 				: this->material;
 
 			if (current_material && current_material->IsTransparent() == transparent)
 			{
-				if (MaterialShader_ptr current_shader = sl->ShaderLookup(current_material))
+				if (MaterialShaderPtr current_shader = sl->ShaderLookup(current_material))
 				{
 					if (verxtex_attribs_mapped.count(current_shader) <= 0)
 					{
@@ -501,7 +506,7 @@ void RenderMesh::SetDrawingMode(DrawMode mode)
 	}
 }
 
-void RenderMesh::RenderGeometry(const ShaderBase_ptr& shader) const
+void RenderMesh::RenderGeometry(const ShaderBasePtr& shader) const
 {
 	// Map vertex attributes for this shader
 	MapVertexAttributes(shader);

@@ -22,7 +22,7 @@ ShDiffuseShader::~ShDiffuseShader(void)
 {
 }
 
-bool ShDiffuseShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransform)
+bool ShDiffuseShader::Use(const ScenePtr& scene, const glm::mat4& modelTransform)
 {
 	bool ok = MaterialShader::Use(scene,modelTransform);
 
@@ -37,8 +37,7 @@ bool ShDiffuseShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransfor
 
 		for (int i = 0; i<9; i++)
 		{
-			//TODO: use std::copy
-			memcpy(shCoeffs.data() + i * 3, &(material->shCoeffs->m_Coeffs[i].x), 3 * sizeof(float));
+			std::copy_n(&(material->shCoeffs->m_Coeffs[i].x), 3, shCoeffs.data() + i * 3);
 		}
 
 		SetUniformArray("shLightCoeffs", shCoeffs.data(), 3, 9);
@@ -52,9 +51,9 @@ bool ShDiffuseShader::Use(const Scene_ptr& scene, const glm::mat4& modelTransfor
 	return ok;
 }
 
-bool ShDiffuseShader::SetMaterial(const Material_cptr& material)
+bool ShDiffuseShader::SetMaterial(const MaterialConstPtr& material)
 {
-	if (ShDiffuseMaterial_cptr mat = std::dynamic_pointer_cast<const ShDiffuseMaterial>(material))
+	if (ShDiffuseMaterialConstPtr mat = std::dynamic_pointer_cast<const ShDiffuseMaterial>(material))
 	{
 		this->material = mat;
 		return true;

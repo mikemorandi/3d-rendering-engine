@@ -19,12 +19,12 @@
 #include <iostream>
 #include <stdexcept>
 
-Renderer_ptr Renderer::Create(const Viewport_ptr& viewport)
+RendererPtr Renderer::Create(const ViewportPtr& viewport)
 {
 	return std::make_shared<Renderer>(viewport);
 }
 
-Renderer::Renderer(const Viewport_ptr& viewport)
+Renderer::Renderer(const ViewportPtr& viewport)
 	: m_ShowDebugElements(false)
 	, m_ShadowMapsInitialized(false)
 	, m_Viewport(viewport)
@@ -37,13 +37,13 @@ Renderer::~Renderer()
 {
 }
 
-void Renderer::SetScene(Scene_ptr scene)
+void Renderer::SetScene(ScenePtr scene)
 {
 	m_Scene = scene;
 	m_ShadowMapsInitialized = false;  // Reset flag when scene changes
 	Create2DOverlayScene();
 }
-Scene_ptr Renderer::Scene()
+ScenePtr Renderer::Scene()
 {
 	return m_Scene;
 }
@@ -94,7 +94,7 @@ void Renderer::Render()
 	}
 }
 
-void Renderer::ViewportChanged(const Viewport_ptr& viewport)
+void Renderer::ViewportChanged(const ViewportPtr& viewport)
 {
 	m_Viewport = viewport;
 }
@@ -198,7 +198,7 @@ void Renderer::GenerateShadowMaps()
 	}
 }
 
-void Renderer::RenderShadowMap(const Light_ptr& light)
+void Renderer::RenderShadowMap(const LightPtr& light)
 {
 	auto shadowMap = light->GetShadowMap();
 	if (!shadowMap) return;

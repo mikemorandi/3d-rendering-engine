@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<scene name="Blackhawk">
+<scene name="Blackhawk" cameraMode="inspection">
 
   <!-- initial camera position -->
   <camera type="perspective" fov="70.0">

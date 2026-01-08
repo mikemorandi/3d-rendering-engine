@@ -1,38 +1,44 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include <memory>
 #include "../materials/Material.h"
 
 #include <map> 
 #include <typeinfo> 
 
-SHARED_PTR_CLASS_DECL(ShaderLibrary)
-SHARED_PTR_CLASS_DECL(MaterialShader)
+class ShaderLibrary;
+using ShaderLibraryPtr = std::shared_ptr<ShaderLibrary>;
+using ShaderLibraryConstPtr = std::shared_ptr<const ShaderLibrary>;
+using ShaderLibraryWeakPtr = std::weak_ptr<ShaderLibrary>;
+class MaterialShader;
+using MaterialShaderPtr = std::shared_ptr<MaterialShader>;
+using MaterialShaderConstPtr = std::shared_ptr<const MaterialShader>;
+using MaterialShaderWeakPtr = std::weak_ptr<MaterialShader>;
 
 class ShaderLibrary
 {
 public:	
-	static ShaderLibrary_ptr Instance();
+	static ShaderLibraryPtr Instance();
 
 	ShaderLibrary();
 
 	virtual ~ShaderLibrary();
 
-	MaterialShader_ptr ShaderLookup(const Material_cptr& material);
+	MaterialShaderPtr ShaderLookup(const MaterialConstPtr& material);
 	
-	bool AddShader(const Material_cptr& material);
+	bool AddShader(const MaterialConstPtr& material);
 
 	static void Reset();
 	
 protected:
 
-	bool AddShader(const Material_cptr& material, const MaterialShader_ptr& shader);
+	bool AddShader(const MaterialConstPtr& material, const MaterialShaderPtr& shader);
 
-	MaterialShader_ptr ShaderLookup(const std::type_info& materialType);
-	bool AddShader(const std::type_info& materialType, const MaterialShader_ptr& shader);
+	MaterialShaderPtr ShaderLookup(const std::type_info& materialType);
+	bool AddShader(const std::type_info& materialType, const MaterialShaderPtr& shader);
 
-	static ShaderLibrary_ptr instance;
-	std::map<const std::type_info*, MaterialShader_ptr> materialShaderDictionary;
+	static ShaderLibraryPtr instance;
+	std::map<const std::type_info*, MaterialShaderPtr> materialShaderDictionary;
 	
 private:
 	ShaderLibrary(const ShaderLibrary&);            

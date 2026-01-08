@@ -1,14 +1,18 @@
 #pragma once
 
 #include "Texture2D.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(DepthTexture);
+class DepthTexture;
+using DepthTexturePtr = std::shared_ptr<DepthTexture>;
+using DepthTextureConstPtr = std::shared_ptr<const DepthTexture>;
+using DepthTextureWeakPtr = std::weak_ptr<DepthTexture>;
 
 class DepthTexture : public Texture2D
 {
 public:
 
-	static DepthTexture_ptr Create(int width, int height);
+	static DepthTexturePtr Create(int width, int height);
 
 	DepthTexture(int width, int height, Format format);
 

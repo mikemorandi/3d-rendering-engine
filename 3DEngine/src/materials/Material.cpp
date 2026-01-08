@@ -45,7 +45,7 @@ PhongMaterial::PhongMaterial()
 
 }
 
-void PhongMaterial::InitFromWavefrontMaterial(const WavefrontObjMaterial_cptr& mat, const std::filesystem::path& base_folder)
+void PhongMaterial::InitFromWavefrontMaterial(const WavefrontObjMaterialConstPtr& mat, const std::filesystem::path& base_folder)
 {
 	(void)base_folder;  // PhongMaterial doesn't use textures, but derived classes might
 	name = mat->name;
@@ -64,7 +64,7 @@ bool PhongMaterial::IsTransparent() const
 	return opacity != 1.0f;
 }
 
-void TextureMaterial::InitFromWavefrontMaterial(const WavefrontObjMaterial_cptr& mat, const std::filesystem::path& base_folder)
+void TextureMaterial::InitFromWavefrontMaterial(const WavefrontObjMaterialConstPtr& mat, const std::filesystem::path& base_folder)
 {
 	PhongMaterial::InitFromWavefrontMaterial(mat, base_folder);
 

@@ -8,7 +8,7 @@
 
 #include "../error.h"
 
-UniformBuffer::UniformBuffer(const GLSLProgram_ptr program, std::string bufferName, const std::vector<std::string>& names)
+UniformBuffer::UniformBuffer(const GLSLProgramPtr program, std::string bufferName, const std::vector<std::string>& names)
 {
 	if( ! program->isLinked () )
 		Error("[UniformBuffer] Program is not Linked");
@@ -78,7 +78,7 @@ UniformBuffer::~UniformBuffer(void)
 	}
 }
 
-void UniformBuffer::PrintUniforms(const GLSLProgram_ptr program, const std::vector<std::string>& elemNames, GLuint* indices, GLint* eOffsets)
+void UniformBuffer::PrintUniforms(const GLSLProgramPtr program, const std::vector<std::string>& elemNames, GLuint* indices, GLint* eOffsets)
 {
 	std::vector<std::string> ll = program->GetUniformAttributes();
 	std::cout << "Indices:" << std::endl;
@@ -122,7 +122,7 @@ void UniformBuffer::SetElement(const std::string& name, float v)
 	SetElement(name, &v, sizeof(GLfloat));
 }
 
-void UniformBuffer::BindToShader(GLSLProgram_ptr program, std::string bufferName)
+void UniformBuffer::BindToShader(GLSLProgramPtr program, std::string bufferName)
 {
 	if (!program || !program->isLinked())
 	{

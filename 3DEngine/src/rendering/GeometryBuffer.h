@@ -1,27 +1,36 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include <memory>
 #include <glm/fwd.hpp>
 #include "../core/gl.h"
 
 
-SHARED_PTR_CLASS_DECL(GeometryBuffer);
-SHARED_PTR_CLASS_DECL(GBufferShader);
-SHARED_PTR_CLASS_DECL(Scene);
+class GeometryBuffer;
+using GeometryBufferPtr = std::shared_ptr<GeometryBuffer>;
+using GeometryBufferConstPtr = std::shared_ptr<const GeometryBuffer>;
+using GeometryBufferWeakPtr = std::weak_ptr<GeometryBuffer>;
+class GBufferShader;
+using GBufferShaderPtr = std::shared_ptr<GBufferShader>;
+using GBufferShaderConstPtr = std::shared_ptr<const GBufferShader>;
+using GBufferShaderWeakPtr = std::weak_ptr<GBufferShader>;
+class Scene;
+using ScenePtr = std::shared_ptr<Scene>;
+using SceneConstPtr = std::shared_ptr<const Scene>;
+using SceneWeakPtr = std::weak_ptr<Scene>;
 
 
 class GeometryBuffer
 {
 public:
 
-	static GeometryBuffer_ptr Create(int width, int height);
+	static GeometryBufferPtr Create(int width, int height);
 
 	GeometryBuffer(int width, int height);
 	
 	virtual ~GeometryBuffer();
 
 	/// 
-	void StartGBufferComp(const Scene_ptr& scene);
+	void StartGBufferComp(const ScenePtr& scene);
 	
 	
 	void EndGBufferComp();
@@ -35,6 +44,6 @@ protected:
 	GLuint m_DepthBuffer;
 	GLuint m_Textures[2];
 
-	GBufferShader_ptr m_Shader;
+	GBufferShaderPtr m_Shader;
 };
 

@@ -7,11 +7,11 @@
 
 bool ImageUtil::initialized = false;
 
-ImageData_ptr ImageUtil::LoadImage(const std::filesystem::path path)
+ImageDataPtr ImageUtil::LoadImage(const std::filesystem::path path)
 {
 	Initialize();
 
-	ImageData_ptr data;
+	ImageDataPtr data;
 
 	int width, height, channels;
 
@@ -44,9 +44,9 @@ ImageData_ptr ImageUtil::LoadImage(const std::filesystem::path path)
 	return data;
 }
 
-std::vector<ImageData_ptr> ImageUtil::LoadImages(const std::vector<std::filesystem::path> paths)
+std::vector<ImageDataPtr> ImageUtil::LoadImages(const std::vector<std::filesystem::path> paths)
 {
-	std::vector<ImageData_ptr> subImages(paths.size());
+	std::vector<ImageDataPtr> subImages(paths.size());
 	for (size_t i = 0; i < paths.size(); i++)
 	{
 		subImages[i] = LoadImage(paths[i]);
@@ -55,7 +55,7 @@ std::vector<ImageData_ptr> ImageUtil::LoadImages(const std::vector<std::filesyst
 	return subImages;
 }
 
-std::vector<ImageData_ptr> ImageUtil::LoadCubeMapImages(const std::filesystem::path path)
+std::vector<ImageDataPtr> ImageUtil::LoadCubeMapImages(const std::filesystem::path path)
 {
 	Initialize();
 
@@ -67,10 +67,10 @@ std::vector<ImageData_ptr> ImageUtil::LoadCubeMapImages(const std::filesystem::p
 	if (!imgData)
 	{
 		Error("Could not load cubemap texture: " + path.string() + " - " + std::string(stbi_failure_reason()));
-		return std::vector<ImageData_ptr>();
+		return std::vector<ImageDataPtr>();
 	}
 
-	std::vector<ImageData_ptr> subImages(6);
+	std::vector<ImageDataPtr> subImages(6);
 
 	// Calculate subimage sizes (assuming cross layout)
 	unsigned int width = originalWidth / 4;
@@ -84,7 +84,7 @@ std::vector<ImageData_ptr> ImageUtil::LoadCubeMapImages(const std::filesystem::p
 	}
 
 	// Lambda to copy a subregion from the loaded image
-	auto copySubpixels = [&](size_t xOffset, size_t yOffset, size_t subWidth, size_t subHeight, ImageData_ptr& dest)
+	auto copySubpixels = [&](size_t xOffset, size_t yOffset, size_t subWidth, size_t subHeight, ImageDataPtr& dest)
 	{
 		for (size_t y = 0; y < subHeight; y++)
 		{
@@ -123,7 +123,7 @@ void ImageUtil::Initialize()
 	}
 }
 
-inline ImageData_ptr ImageData::Create(unsigned int width, unsigned int height, unsigned int components)
+inline ImageDataPtr ImageData::Create(unsigned int width, unsigned int height, unsigned int components)
 {
 	return std::make_shared<ImageData>(width, height, components);
 }

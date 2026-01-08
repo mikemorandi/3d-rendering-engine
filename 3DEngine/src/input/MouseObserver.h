@@ -1,10 +1,13 @@
 #pragma once
 
 #include <glm/fwd.hpp>
+#include <memory>
 
-#include "../util/SharedPointer.h"
 
-SHARED_PTR_CLASS_DECL(MouseObserver);
+class MouseObserver;
+using MouseObserverPtr = std::shared_ptr<MouseObserver>;
+using MouseObserverConstPtr = std::shared_ptr<const MouseObserver>;
+using MouseObserverWeakPtr = std::weak_ptr<MouseObserver>;
 
 namespace Input 
 {

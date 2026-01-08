@@ -5,22 +5,22 @@
 
 #include <stdexcept>
 
-Texture2D_ptr Texture2D::Create(const std::filesystem::path& texturePath)
+Texture2DPtr Texture2D::Create(const std::filesystem::path& texturePath)
 {
 	return std::make_shared<Texture2D>(texturePath);
 }
 
-Texture2D_ptr Texture2D::Create(int width, int height, Format format)
+Texture2DPtr Texture2D::Create(int width, int height, Format format)
 {
 	return std::make_shared<Texture2D>(width, height, format);
 }
 
-Texture2D_ptr Texture2D::Create(GLuint texHandle)
+Texture2DPtr Texture2D::Create(GLuint texHandle)
 {
 	return std::make_shared<Texture2D>(texHandle);
 }
 
-Texture2D_ptr Texture2D::Create(int width, int height, const void* data, Format format)
+Texture2DPtr Texture2D::Create(int width, int height, const void* data, Format format)
 {
 	return std::make_shared<Texture2D>(width,height,data,format);
 }
@@ -90,7 +90,7 @@ Texture2D::Texture2D(int width, int height, const void* data, Format format)
 Texture2D::Texture2D(const std::filesystem::path& texturePath)
 : Texture(GL_TEXTURE_2D, Format::RGB)
 {
-	if (ImageData_ptr imageData = ImageUtil::LoadImage(texturePath))
+	if (ImageDataPtr imageData = ImageUtil::LoadImage(texturePath))
 	{
 		if (imageData->components == 4)
 			this->textureFormat = Format::RGBA;

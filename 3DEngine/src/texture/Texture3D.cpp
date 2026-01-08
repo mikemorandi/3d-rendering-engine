@@ -4,12 +4,12 @@
 #include "../util/Util.h"
 
 
-Texture3D_ptr Texture3D::Create(int width, int height, int depth, Format format)
+Texture3DPtr Texture3D::Create(int width, int height, int depth, Format format)
 {
 	return std::make_shared<Texture3D>(width, height, depth, format, nullptr);
 }
 
-Texture3D_ptr Texture3D::Create(int width, int height, int depth, void* data, Format format)
+Texture3DPtr Texture3D::Create(int width, int height, int depth, void* data, Format format)
 {
 	return  std::make_shared<Texture3D>(width, height, depth, format, data);
 }

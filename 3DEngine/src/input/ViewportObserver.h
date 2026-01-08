@@ -1,13 +1,19 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(ViewportObserver);
-SHARED_PTR_CLASS_DECL(Viewport);
+class ViewportObserver;
+using ViewportObserverPtr = std::shared_ptr<ViewportObserver>;
+using ViewportObserverConstPtr = std::shared_ptr<const ViewportObserver>;
+using ViewportObserverWeakPtr = std::weak_ptr<ViewportObserver>;
+class Viewport;
+using ViewportPtr = std::shared_ptr<Viewport>;
+using ViewportConstPtr = std::shared_ptr<const Viewport>;
+using ViewportWeakPtr = std::weak_ptr<Viewport>;
 
 class ViewportObserver
 {
 public:
-	virtual void ViewportChanged(const Viewport_ptr& viewport) = 0;
+	virtual void ViewportChanged(const ViewportPtr& viewport) = 0;
 
 };

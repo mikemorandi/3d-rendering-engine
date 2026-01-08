@@ -44,7 +44,7 @@ using tinyxml2::XMLNode;
 using std::string;
 using std::vector;
 
-typedef std::pair<string,Material_ptr> ShaderKeyVal;
+typedef std::pair<string,MaterialPtr> ShaderKeyVal;
 
 namespace fs = std::filesystem;
 
@@ -53,7 +53,7 @@ SceneParser::SceneParser()
 
 }
 
-Scene_ptr SceneParser::Scene()
+ScenePtr SceneParser::Scene()
 {
 	return generated_scene;
 }
@@ -77,18 +77,35 @@ bool SceneParser::Parse(const std::string& xmlDocument)
 
 			if((cameraElement = root->FirstChildElement("camera")))
 			{
-				Camera_ptr cam;
+				CameraPtr cam;
 				parseOk &= ParseCamera(cam,cameraElement);
 				try
 				{
 					generated_scene = Scene::Create(cam);
 					generated_scene->name = sceneName;
+
+					// Parse optional cameraMode attribute from scene root
+					const char* cameraModeAttr = root->Attribute("cameraMode");
+					if (cameraModeAttr != nullptr)
+					{
+						string cameraMode(cameraModeAttr);
+						if (cameraMode == "inspection")
+						{
+							generated_scene->SetUseInspectionMode(true);
+							std::cout << "  Camera mode: Inspection" << std::endl;
+						}
+						else if (cameraMode == "firstperson")
+						{
+							generated_scene->SetUseInspectionMode(false);
+							std::cout << "  Camera mode: First Person" << std::endl;
+						}
+					}
 				}
 				catch (std::exception* e)
 				{
 					Error(e->what());
 					return false;
-				}		
+				}
 			}
 			else
 			{
@@ -145,19 +162,19 @@ bool SceneParser::ParseMaterials(XMLElement* materialsGroupElement)
 {	
 	if (XMLElement* materialElement = materialsGroupElement->FirstChildElement("material"))
 	{
-		ShaderLibrary_ptr sl = ShaderLibrary::Instance();
+		ShaderLibraryPtr sl = ShaderLibrary::Instance();
 
 		do
 		{
 			string materialType = materialElement->Attribute("shader");
 			string materialName = materialElement->Attribute("name");
 
-			Material_ptr material;
+			MaterialPtr material;
 
 			if (materialType == "phongOld")
 			{
 				// Legacy format - convert vec3 reflection values to scalar coefficients
-				PhongMaterial_ptr phongMat = PhongMaterial::Create();
+				PhongMaterialPtr phongMat = PhongMaterial::Create();
 				XMLElement* subElem;
 
 				if ((subElem = materialElement->FirstChildElement("ambientReflect")))
@@ -197,7 +214,7 @@ bool SceneParser::ParseMaterials(XMLElement* materialsGroupElement)
 			}
 			else if (materialType == "const")
 			{
-				ConstantColorMaterial_ptr mat = ConstantColorMaterial::Create();
+				ConstantColorMaterialPtr mat = ConstantColorMaterial::Create();
 
 				XMLElement* subElem;
 				if ((subElem = materialElement->FirstChildElement("color")))
@@ -207,13 +224,13 @@ bool SceneParser::ParseMaterials(XMLElement* materialsGroupElement)
 			}
 			else if (materialType == "phong")
 			{
-				PhongMaterial_ptr mat;
+				PhongMaterialPtr mat;
 				XMLElement* subElem;
 
 				// Check if this material has textures - if so, create TextureMaterial
 				if ((subElem = materialElement->FirstChildElement("texture")))
 				{
-					TextureMaterial_ptr texMat = TextureMaterial::Create();
+					TextureMaterialPtr texMat = TextureMaterial::Create();
 
 					// Load albedo/diffuse texture
 					fs::path texFile(subElem->Attribute("file"));
@@ -319,29 +336,28 @@ bool SceneParser::ParseMaterials(XMLElement* materialsGroupElement)
 
 bool SceneParser::ParseSkybox(XMLElement* skyboxElem)	
 {
-	CubeMapTexture_ptr texture;
+	CubeMapTexturePtr texture;
 
-	const char* path;
-	if((path = skyboxElem->Attribute("cubeMapFile")))
+	if (const char* path = skyboxElem->Attribute("cubeMapFile"); path != nullptr)
 	{
 		//Single file cube map
-		texture.reset(new CubeMapTexture(Config::TEXTURE_BASE_PATH / fs::path(path)));
+		texture = std::make_shared<CubeMapTexture>(Config::TEXTURE_BASE_PATH / fs::path(path));
 	}
-	else if((path = skyboxElem->Attribute("cubeMapFolder")))
+	else if (const char* path = skyboxElem->Attribute("cubeMapFolder"); path != nullptr)
 	{
 		//Cube map consisting of 6 files
 		string type = skyboxElem->Attribute("type");
-		texture.reset(new CubeMapTexture(Config::TEXTURE_BASE_PATH / path, type));
+		texture = std::make_shared<CubeMapTexture>(Config::TEXTURE_BASE_PATH / path, type);
 	}
 	else
 	{
 		return false;
 	}
 
-	SkyboxMaterial_ptr sbMat = SkyboxMaterial::Create();
+	SkyboxMaterialPtr sbMat = SkyboxMaterial::Create();
 	sbMat->texture = texture;
 
-	Skybox_ptr sb = Skybox_ptr(new Skybox(sbMat));
+	SkyboxPtr sb = std::make_shared<Skybox>(sbMat);
 	sb->Init();
 	generated_scene->SetSkybox(sb);
 
@@ -353,14 +369,14 @@ bool SceneParser::ParseObjects(XMLElement* objects)
 	//Parse children of 'objects'
 	if(XMLElement* objeElem = objects->FirstChildElement())
 	{
-		std::vector<Shape_ptr> shapes;
-		std::map<std::string, Shape_ptr> instanceableShapes;		
+		std::vector<ShapePtr> shapes;
+		std::map<std::string, ShapePtr> instanceableShapes;		
 
 		do
 		{
 			string type = objeElem->Name();
-			Shape_ptr shape;
-			Material_ptr material;			
+			ShapePtr shape;
+			MaterialPtr material;			
 
 			if (const char* materialName = objeElem->Attribute("material"))
 			{
@@ -504,7 +520,7 @@ bool SceneParser::ParseTransforms(glm::mat4& tMatrix, tinyxml2::XMLElement* tran
 
 }
 
-bool SceneParser::ParseCamera(Camera_ptr& cam, tinyxml2::XMLElement* camElement)
+bool SceneParser::ParseCamera(CameraPtr& cam, tinyxml2::XMLElement* camElement)
 {
 	bool success = true;
 	std::string type = camElement->Attribute("type");
@@ -516,7 +532,7 @@ bool SceneParser::ParseCamera(Camera_ptr& cam, tinyxml2::XMLElement* camElement)
 		if( ! ( success &= GetFloatAttrib(camElement,"fov",fov) )  )
 			return false;
 
-		cam.reset(new PerspectiveCamera(fov));
+		cam = std::make_shared<PerspectiveCamera>(fov);
 	}
 	else //unknown camera type
 	{
@@ -551,7 +567,7 @@ bool SceneParser::ParseLights(tinyxml2::XMLElement* lightsGroupElement)
 
 			if (lightType == "point")
 			{
-				PointLight_ptr plight = PointLight::Create();
+				PointLightPtr plight = PointLight::Create();
 				glm::vec3 pos, color;
 
 				GetVector3(lightElem->FirstChildElement("position"), pos);
@@ -576,7 +592,7 @@ bool SceneParser::ParseLights(tinyxml2::XMLElement* lightsGroupElement)
 				GetFloatAttrib(lightElem, "exponent", exponent);
 				bool animated;
 				GetBoolAttrib(lightElem, "animated", animated);
-				SpotLight_ptr slight = SpotLight::Create(direction, cutoff, exponent);
+				SpotLightPtr slight = SpotLight::Create(direction, cutoff, exponent);
 
 				slight->SetPosition(glm::vec4(pos, 1.0));
 				slight->SetColor(color);
@@ -593,7 +609,7 @@ bool SceneParser::ParseLights(tinyxml2::XMLElement* lightsGroupElement)
 				GetColorVector3(lightElem->FirstChildElement("color"), color);
 				GetVector3(lightElem->FirstChildElement("direction"), direction);
 
-				DirectionalLight_ptr dirLight = DirectionalLight::Create(glm::normalize(direction));
+				DirectionalLightPtr dirLight = DirectionalLight::Create(glm::normalize(direction));
 				dirLight->SetColor(color);
 				generated_scene->SetLight(dirLight);
 
@@ -603,7 +619,7 @@ bool SceneParser::ParseLights(tinyxml2::XMLElement* lightsGroupElement)
 				glm::vec3 color(1.0f);
 				GetColorVector3(lightElem->FirstChildElement("color"), color);
 
-				AmbientLight_ptr ambLight = AmbientLight::Create();
+				AmbientLightPtr ambLight = AmbientLight::Create();
 				ambLight->SetColor(color);
 				generated_scene->SetLight(ambLight);				
 			}

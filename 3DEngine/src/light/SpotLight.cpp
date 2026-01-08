@@ -5,11 +5,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/ext.hpp>
 
 #include <iostream>
 
-SpotLight_ptr SpotLight::Create(const glm::vec3& direction, float cutoffAngle, float exponent)
+SpotLightPtr SpotLight::Create(const glm::vec3& direction, float cutoffAngle, float exponent)
 {
 	return std::make_shared<SpotLight>(direction, cutoffAngle, exponent);
 }
@@ -71,25 +72,20 @@ float SpotLight::Exponent() const
 
 void SpotLight::UpdateVisMesh()
 {
-	// TODO: use quaternions instead of euler angles here
+	// Use quaternion rotation from default direction to light direction
+	const glm::vec3 defaultDir(0, 0, 1);
 
-	const glm::vec3 z_vec(0, 0, 1);
+	// Calculate rotation quaternion from default direction to light direction
+	glm::quat rotation = glm::rotation(defaultDir, frame.ViewDir());
 
-	glm::vec3 xz_plane_dir = frame.ViewDir();
-	xz_plane_dir.y = 0;
-	xz_plane_dir = glm::normalize(xz_plane_dir);
+	// Convert quaternion to rotation matrix
+	glm::mat4 rotationMatrix = glm::mat4_cast(rotation);
 
-	// How can a normalized vector not have unit length?? rounding? clamping is a workaround
-	float pitch_angle = std::acos(glm::clamp(glm::dot(frame.ViewDir(), xz_plane_dir), -1.f, 1.f));
-	float yaw_angle = std::acos(glm::dot(xz_plane_dir, z_vec));
+	// Apply position translation
+	glm::mat4 t = glm::translate(rotationMatrix, glm::vec3(position));
+	t[3] = position; // Set position directly
 
-	if (xz_plane_dir.x < 0)
-		yaw_angle = glm::two_pi<float>() - yaw_angle;
-
-	auto t = glm::yawPitchRoll(yaw_angle, pitch_angle, 0.f);
-	t[3] = position;
 	visMesh->SetWorldTransform(t);
-
 }
 
 glm::mat4 SpotLight::GetLightViewMatrix() const

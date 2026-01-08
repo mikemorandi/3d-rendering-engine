@@ -7,13 +7,13 @@
 #include "DepthMapShader.h"
 
 // static initialization
-ShaderLibrary_ptr ShaderLibrary::instance = ShaderLibrary_ptr();
+ShaderLibraryPtr ShaderLibrary::instance = ShaderLibraryPtr();
 
 ShaderLibrary::ShaderLibrary() {}
 
 ShaderLibrary::~ShaderLibrary() {}
 
-ShaderLibrary_ptr ShaderLibrary::Instance()
+ShaderLibraryPtr ShaderLibrary::Instance()
 {
 	if (!instance)
 	{
@@ -23,7 +23,7 @@ ShaderLibrary_ptr ShaderLibrary::Instance()
 	return instance;
 }
 
-bool ShaderLibrary::AddShader(const Material_cptr& material)
+bool ShaderLibrary::AddShader(const MaterialConstPtr& material)
 {
 	if (!ShaderLookup(material))
 	{
@@ -50,13 +50,13 @@ void ShaderLibrary::Reset()
 	instance.reset();
 }
 
-bool ShaderLibrary::AddShader(const Material_cptr& material, const MaterialShader_ptr& shader)
+bool ShaderLibrary::AddShader(const MaterialConstPtr& material, const MaterialShaderPtr& shader)
 {
 	const std::type_info& info = typeid(*material.get());
 	return AddShader(info, shader);
 }
 
-bool ShaderLibrary::AddShader(const std::type_info& materialType, const MaterialShader_ptr& shader)
+bool ShaderLibrary::AddShader(const std::type_info& materialType, const MaterialShaderPtr& shader)
 {
 	bool success = false;
 
@@ -68,7 +68,7 @@ bool ShaderLibrary::AddShader(const std::type_info& materialType, const Material
 	return success;
 }
 
-MaterialShader_ptr ShaderLibrary::ShaderLookup(const Material_cptr& material)
+MaterialShaderPtr ShaderLibrary::ShaderLookup(const MaterialConstPtr& material)
 {
 	if (material)
 	{
@@ -76,14 +76,14 @@ MaterialShader_ptr ShaderLibrary::ShaderLookup(const Material_cptr& material)
 		return ShaderLookup(info);
 	}
 	else
-		return MaterialShader_ptr();
+		return MaterialShaderPtr();
 
 }
 
-MaterialShader_ptr ShaderLibrary::ShaderLookup(const std::type_info& materialType)
+MaterialShaderPtr ShaderLibrary::ShaderLookup(const std::type_info& materialType)
 {
 	if (materialShaderDictionary.count(&materialType) > 0)
 		return materialShaderDictionary[&materialType];
 	else
-		return MaterialShader_ptr(); //TODO: create shader with factory
+		return MaterialShaderPtr(); //TODO: create shader with factory
 }

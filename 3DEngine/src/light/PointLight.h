@@ -1,12 +1,25 @@
 #pragma once
 
 #include "Light.h"
+#include "../util/SharedPointer.h"
 
 #include <glm/vec4.hpp>
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(Shape)
-SHARED_PTR_CLASS_DECL(PointLight);
-SHARED_PTR_CLASS_DECL(ConstColorShader);
+class Shape;
+using ShapePtr = std::shared_ptr<Shape>;
+using ShapeConstPtr = std::shared_ptr<const Shape>;
+using ShapeWeakPtr = std::weak_ptr<Shape>;
+
+class PointLight;
+using PointLightPtr = std::shared_ptr<PointLight>;
+using PointLightConstPtr = std::shared_ptr<const PointLight>;
+using PointLightWeakPtr = std::weak_ptr<PointLight>;
+
+class ConstColorShader;
+using ConstColorShaderPtr = std::shared_ptr<ConstColorShader>;
+using ConstColorShaderConstPtr = std::shared_ptr<const ConstColorShader>;
+using ConstColorShaderWeakPtr = std::weak_ptr<ConstColorShader>;
 
 
 class PointLight : public Light
@@ -22,7 +35,7 @@ public:
 	virtual	const glm::vec4& Position() const;
 	virtual void SetPosition(const glm::vec4& pos);
 	virtual void SetColor(const glm::vec3& color) override;
-	virtual Shape_ptr ModelRepresentation() const override;
+	virtual ShapePtr ModelRepresentation() const override;
 
 	virtual void SetAnimated(bool animated);
 	virtual bool Animated() const;
@@ -33,6 +46,6 @@ public:
 
 	bool animated;
 	glm::vec4 position;
-	Shape_ptr visMesh;
+	ShapePtr visMesh;
 };
 

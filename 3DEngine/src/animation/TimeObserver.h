@@ -1,8 +1,11 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(TimeObserver);
+class TimeObserver;
+using TimeObserverPtr = std::shared_ptr<TimeObserver>;
+using TimeObserverConstPtr = std::shared_ptr<const TimeObserver>;
+using TimeObserverWeakPtr = std::weak_ptr<TimeObserver>;
 
 class TimeObserver
 {

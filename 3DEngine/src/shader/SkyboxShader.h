@@ -2,9 +2,16 @@
 
 #include "MaterialShader.h"
 #include "../util/SharedPointer.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(SkyboxShader);
-SHARED_PTR_CLASS_DECL(SkyboxMaterial);
+class SkyboxShader;
+using SkyboxShaderPtr = std::shared_ptr<SkyboxShader>;
+using SkyboxShaderConstPtr = std::shared_ptr<const SkyboxShader>;
+using SkyboxShaderWeakPtr = std::weak_ptr<SkyboxShader>;
+class SkyboxMaterial;
+using SkyboxMaterialPtr = std::shared_ptr<SkyboxMaterial>;
+using SkyboxMaterialConstPtr = std::shared_ptr<const SkyboxMaterial>;
+using SkyboxMaterialWeakPtr = std::weak_ptr<SkyboxMaterial>;
 
 class SkyboxShader : public MaterialShader
 {
@@ -16,13 +23,13 @@ public:
 
 	~SkyboxShader();
 
-	virtual bool Use(const Scene_ptr& scene, const glm::mat4& modelTransform) override;
+	virtual bool Use(const ScenePtr& scene, const glm::mat4& modelTransform) override;
 
-	virtual bool SetMaterial(const Material_cptr& material) override;
+	virtual bool SetMaterial(const MaterialConstPtr& material) override;
 
 protected:
 
 	GLuint texUnit;
-	SkyboxMaterial_cptr material;
+	SkyboxMaterialConstPtr material;
 };
 

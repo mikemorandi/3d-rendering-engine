@@ -85,33 +85,29 @@ std::string Util::LoadTextFile(char* filename)
 
 }
 
-void Util::PrintStrings(const std::vector<string> strings)
+void Util::PrintStrings(const std::vector<string>& strings)
 {
-	std::vector<string>::const_iterator stringsIterator;
-
-	for(stringsIterator = strings.begin(); 
-		stringsIterator != strings.end();
-		stringsIterator++)
+	for (const auto& str : strings)
 	{
-			std::cout << *stringsIterator << std::endl;
+		std::cout << str << std::endl;
 	}
 }
 
-void Util::PrintUniforms(const ShaderBase_ptr& shader)
+void Util::PrintUniforms(const ShaderBasePtr& shader)
 {
 	std::cout << shader->GetName() << std::endl << "------------------" << std::endl;
 	PrintStrings(shader->GetUniformAttributes());
 	std::cout << std::endl;
 }
 
-RenderMesh_ptr Util::LoadModel(const std::filesystem::path& path, bool computeTangentsHint /*= false*/)
+RenderMeshPtr Util::LoadModel(const std::filesystem::path& path, bool computeTangentsHint /*= false*/)
 {
 	ObjLoader oj;
 	clock_t begin = clock();
 	
-	if(IndexedRawMesh_ptr rawMesh = oj.LoadObjFile(path))
+	if(IndexedRawMeshPtr rawMesh = oj.LoadObjFile(path))
 	{	
-		if(OpenGLRawMesh_ptr gl_raw_mesh = rawMesh->ConvertToOpenGLMesh())
+		if(OpenGLRawMeshPtr gl_raw_mesh = rawMesh->ConvertToOpenGLMesh())
 		{
 			if (!gl_raw_mesh->HasNormals())
 			{
@@ -123,7 +119,7 @@ RenderMesh_ptr Util::LoadModel(const std::filesystem::path& path, bool computeTa
 			}
 
 			bool tangents_needed = std::any_of(gl_raw_mesh->materials.begin(), gl_raw_mesh->materials.begin(), 
-				[](const WavefrontObjMaterial_ptr& mat)
+				[](const WavefrontObjMaterialPtr& mat)
 			{
 				return mat->HasBumpMap() || mat->HasDisplacementMap();
 			});
@@ -140,7 +136,7 @@ RenderMesh_ptr Util::LoadModel(const std::filesystem::path& path, bool computeTa
 					Error("Could not compute tangents, normals or tex coords missing");
 			}
 
-			RenderMesh_ptr mesh = RenderMesh::Create(gl_raw_mesh);
+			RenderMeshPtr mesh = RenderMesh::Create(gl_raw_mesh);
 
 			double elapsed_secs = double(clock() - begin) / CLOCKS_PER_SEC * 1000;
 			std::cout << "time [msec]: " << elapsed_secs << std::endl;
@@ -148,46 +144,46 @@ RenderMesh_ptr Util::LoadModel(const std::filesystem::path& path, bool computeTa
 		}
 	}
 
-	return RenderMesh_ptr();
+	return RenderMeshPtr();
 	
 }
 
-RenderMesh_ptr Util::GetDragon()
+RenderMeshPtr Util::GetDragon()
 {
-	RenderMesh_ptr model = Util::LoadModel("../data/models/dragon.obj");
+	RenderMeshPtr model = Util::LoadModel("../data/models/dragon.obj");
 	glm::mat4 t = glm::translate(model->WorldTransform(),glm::vec3(0,-0.85f,0));
 	t = glm::scale(t,glm::vec3(8,8,8));
 	model->SetWorldTransform(t);
 	return model;
 }
 
-RenderMesh_ptr Util::GetHorse()
+RenderMeshPtr Util::GetHorse()
 {
-	RenderMesh_ptr model = Util::LoadModel("../data/models/horse.obj");
+	RenderMeshPtr model = Util::LoadModel("../data/models/horse.obj");
 	glm::mat4 t = glm::translate(model->WorldTransform(),glm::vec3(0,-0.3f,0));
 	t = glm::rotate(t, glm::radians(270.0f), glm::vec3(0,1,0));
 	model->SetWorldTransform(t);
 	return model;
 }
 
-RenderMesh_ptr Util::GetElephant()
+RenderMeshPtr Util::GetElephant()
 {
-	RenderMesh_ptr model = Util::LoadModel("../data/models/elephant.obj");
+	RenderMeshPtr model = Util::LoadModel("../data/models/elephant.obj");
 	glm::mat4 t = glm::translate(model->WorldTransform(),glm::vec3(0,-0.5f,0));
 	model->SetWorldTransform(t);
 	return model;
 }
 
-RenderMesh_ptr Util::CreateBox()
+RenderMeshPtr Util::CreateBox()
 {
-	Box_ptr box = Box::Create();
+	BoxPtr box = Box::Create();
 	box->Init();
 	return box;
 }
 
-RenderMesh_ptr Util::CreateWireBox()
+RenderMeshPtr Util::CreateWireBox()
 {
-	WireCube_ptr box = WireCube::Create();
+	WireCubePtr box = WireCube::Create();
 	box->Init();
 	return box;
 }
@@ -204,13 +200,6 @@ fs::path Util::ExtractFileName(std::string path)
 	return pathToFile.filename();
 }
 
-bool Util::FileExists (const std::string& name) {
-	std::ifstream f(name.c_str());
-	if (f.good()) {
-		f.close();
-		return true;
-	} else {
-		f.close();
-		return false;
-	}   
+bool Util::FileExists(const std::filesystem::path& path) {
+	return std::filesystem::exists(path);
 }

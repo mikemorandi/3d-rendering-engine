@@ -1,36 +1,59 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include <memory>
 #include "../input/ViewportObserver.h"
 #include "../input/KeyboardObserver.h"
 
-SHARED_PTR_CLASS_DECL(Renderer);
-SHARED_PTR_CLASS_DECL(Viewport);
-SHARED_PTR_CLASS_DECL(Scene);
-SHARED_PTR_CLASS_DECL(GeometryBuffer);
-SHARED_PTR_CLASS_DECL(ShadowDepthShader);
-SHARED_PTR_CLASS_DECL(Light);
+class Renderer;
+using RendererPtr = std::shared_ptr<Renderer>;
+using RendererConstPtr = std::shared_ptr<const Renderer>;
+using RendererWeakPtr = std::weak_ptr<Renderer>;
+
+class Viewport;
+using ViewportPtr = std::shared_ptr<Viewport>;
+using ViewportConstPtr = std::shared_ptr<const Viewport>;
+using ViewportWeakPtr = std::weak_ptr<Viewport>;
+
+class Scene;
+using ScenePtr = std::shared_ptr<Scene>;
+using SceneConstPtr = std::shared_ptr<const Scene>;
+using SceneWeakPtr = std::weak_ptr<Scene>;
+
+class GeometryBuffer;
+using GeometryBufferPtr = std::shared_ptr<GeometryBuffer>;
+using GeometryBufferConstPtr = std::shared_ptr<const GeometryBuffer>;
+using GeometryBufferWeakPtr = std::weak_ptr<GeometryBuffer>;
+
+class ShadowDepthShader;
+using ShadowDepthShaderPtr = std::shared_ptr<ShadowDepthShader>;
+using ShadowDepthShaderConstPtr = std::shared_ptr<const ShadowDepthShader>;
+using ShadowDepthShaderWeakPtr = std::weak_ptr<ShadowDepthShader>;
+
+class Light;
+using LightPtr = std::shared_ptr<Light>;
+using LightConstPtr = std::shared_ptr<const Light>;
+using LightWeakPtr = std::weak_ptr<Light>;
 
 
 class Renderer : public ViewportObserver, public KeyboardObserver
 {
 public:
 
-	static Renderer_ptr Create(const Viewport_ptr& viewport);
+	static RendererPtr Create(const ViewportPtr& viewport);
 
-	Renderer(const Viewport_ptr& viewport);
+	Renderer(const ViewportPtr& viewport);
 
 	void Render();
 
 	virtual ~Renderer();
 
-	virtual void ViewportChanged(const Viewport_ptr& viewport) override;
+	virtual void ViewportChanged(const ViewportPtr& viewport) override;
 
 	virtual void OnKey(const Input::Key key, const Input::Modifier mod) override;
 
-	void SetScene(Scene_ptr scene);
+	void SetScene(ScenePtr scene);
 
-	Scene_ptr Scene();
+	ScenePtr Scene();
 
 protected:
 
@@ -39,18 +62,18 @@ protected:
 
 	// Shadow mapping
 	void GenerateShadowMaps();
-	void RenderShadowMap(const Light_ptr& light);
+	void RenderShadowMap(const LightPtr& light);
 	void InitializeShadowMaps();
 
 	bool				m_ShowDebugElements;
 	bool				m_ShadowMapsInitialized;
 
-	Scene_ptr			m_Scene;
-	Scene_ptr			overlay2Dscene;
-	GeometryBuffer_ptr	m_gBuffer;
-	Viewport_ptr		m_Viewport;
+	ScenePtr			m_Scene;
+	ScenePtr			overlay2Dscene;
+	GeometryBufferPtr	m_gBuffer;
+	ViewportPtr			m_Viewport;
 
-	ShadowDepthShader_ptr m_ShadowDepthShader;
+	ShadowDepthShaderPtr m_ShadowDepthShader;
 
 };
 

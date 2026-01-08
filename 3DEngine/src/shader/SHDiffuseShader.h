@@ -1,18 +1,29 @@
 #pragma once
 
 #include "MaterialShader.h"
+#include "../util/SharedPointer.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(ShDiffuseShader)
-SHARED_PTR_CLASS_DECL(ShDiffuseShaderCoeffs)
-SHARED_PTR_CLASS_DECL(ShDiffuseMaterial)
+class ShDiffuseShader;
+using ShDiffuseShaderPtr = std::shared_ptr<ShDiffuseShader>;
+using ShDiffuseShaderConstPtr = std::shared_ptr<const ShDiffuseShader>;
+using ShDiffuseShaderWeakPtr = std::weak_ptr<ShDiffuseShader>;
+class ShDiffuseShaderCoeffs;
+using ShDiffuseShaderCoeffsPtr = std::shared_ptr<ShDiffuseShaderCoeffs>;
+using ShDiffuseShaderCoeffsConstPtr = std::shared_ptr<const ShDiffuseShaderCoeffs>;
+using ShDiffuseShaderCoeffsWeakPtr = std::weak_ptr<ShDiffuseShaderCoeffs>;
+class ShDiffuseMaterial;
+using ShDiffuseMaterialPtr = std::shared_ptr<ShDiffuseMaterial>;
+using ShDiffuseMaterialConstPtr = std::shared_ptr<const ShDiffuseMaterial>;
+using ShDiffuseMaterialWeakPtr = std::weak_ptr<ShDiffuseMaterial>;
 
 class ShDiffuseShaderCoeffs 
 {
 public:
 
-	static ShDiffuseShaderCoeffs_ptr Create()
+	static ShDiffuseShaderCoeffsPtr Create()
 	{
-		return ShDiffuseShaderCoeffs_ptr(new ShDiffuseShaderCoeffs());
+		return ShDiffuseShaderCoeffsPtr(new ShDiffuseShaderCoeffs());
 	}
 
 	std::string name;
@@ -33,11 +44,11 @@ public:
 
 	ShDiffuseShader();
 
-	virtual bool Use(const Scene_ptr& scene, const glm::mat4& modelTransform) override;
+	virtual bool Use(const ScenePtr& scene, const glm::mat4& modelTransform) override;
 
-	virtual bool SetMaterial(const Material_cptr& material) override;
+	virtual bool SetMaterial(const MaterialConstPtr& material) override;
 
-	ShDiffuseMaterial_cptr material;
+	ShDiffuseMaterialConstPtr material;
 
 };
 

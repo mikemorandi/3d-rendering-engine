@@ -22,9 +22,9 @@ void Light::SetColor(const glm::vec3& color)
 	this->color = color;
 }
 
-Shape_ptr Light::ModelRepresentation() const
+ShapePtr Light::ModelRepresentation() const
 {
-	return Shape_ptr();
+	return ShapePtr();
 }
 
 void Light::SetupShadowMapping(int resolution)
@@ -83,12 +83,12 @@ glm::mat4 Light::GetLightSpaceMatrix() const
 	return lightProjectionMatrix * lightViewMatrix;
 }
 
-DepthTexture_ptr Light::GetShadowMap() const
+DepthTexturePtr Light::GetShadowMap() const
 {
 	return shadowMap;
 }
 
-Framebuffer_ptr Light::GetShadowFramebuffer() const
+FramebufferPtr Light::GetShadowFramebuffer() const
 {
 	return shadowFramebuffer;
 }

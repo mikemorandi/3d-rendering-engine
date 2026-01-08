@@ -100,6 +100,25 @@ GraphicsPlayground::GraphicsPlayground()
 
 GraphicsPlayground::~GraphicsPlayground()
 {
+	// Clear all GLFW callbacks before destruction to prevent accessing destroyed objects
+	if (window)
+	{
+		// Force windowed mode if in fullscreen to avoid fullscreen-related cleanup issues
+		GLFWmonitor* currentMonitor = glfwGetWindowMonitor(window);
+		if (currentMonitor != nullptr)
+		{
+			// We're in fullscreen, switch to windowed before cleanup
+			glfwSetWindowMonitor(window, nullptr, 100, 100, 800, 600, GLFW_DONT_CARE);
+		}
+
+		// Clear callbacks before destruction
+		glfwSetKeyCallback(window, nullptr);
+		glfwSetMouseButtonCallback(window, nullptr);
+		glfwSetCursorPosCallback(window, nullptr);
+		glfwSetScrollCallback(window, nullptr);
+		glfwSetFramebufferSizeCallback(window, nullptr);
+	}
+
 	ShaderLibrary::Instance()->Reset();
 }
 
@@ -223,12 +242,13 @@ bool GraphicsPlayground::LoadScene(std::string& sceneName) {
 	return false;
 }
 
-void GraphicsPlayground::InitializeEvents(Scene_ptr& scene) {
+void GraphicsPlayground::InitializeEvents(ScenePtr& scene) {
 
 	WindowEventHandler& winEventHandler = WindowEventHandler::Instance();
 	winEventHandler.AddViewportObserver(renderer);
 
 	GlfwInputHandler& inputHandler = GlfwInputHandler::Instance();
+	inputHandler.SetWindow(window);
 	inputHandler.AddKeyboardObserver(renderer);
 
 	scene->ConnectInputHandler(inputHandler);

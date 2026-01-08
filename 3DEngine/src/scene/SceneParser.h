@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include <memory>
 
 #include <tinyxml2.h>
 #include <map>
@@ -9,34 +9,43 @@
 
 class InputHandlerFactory;
 
-SHARED_PTR_CLASS_DECL(Camera);
-SHARED_PTR_CLASS_DECL(Scene);
-SHARED_PTR_CLASS_DECL(Material);
+class Camera;
+using CameraPtr = std::shared_ptr<Camera>;
+using CameraConstPtr = std::shared_ptr<const Camera>;
+using CameraWeakPtr = std::weak_ptr<Camera>;
+class Scene;
+using ScenePtr = std::shared_ptr<Scene>;
+using SceneConstPtr = std::shared_ptr<const Scene>;
+using SceneWeakPtr = std::weak_ptr<Scene>;
+class Material;
+using MaterialPtr = std::shared_ptr<Material>;
+using MaterialConstPtr = std::shared_ptr<const Material>;
+using MaterialWeakPtr = std::weak_ptr<Material>;
 
 class SceneParser
 {
 public:
 	SceneParser();
 
-	bool Parse(const std::string& xml_document);
-	Scene_ptr Scene();
+	[[nodiscard]] bool Parse(const std::string& xml_document);
+	ScenePtr Scene();
 
 protected:
 
-	inline bool GetIntAttrib(tinyxml2::XMLElement* element, const char* attrib_name, int& value);
-	inline bool GetBoolAttrib(tinyxml2::XMLElement* element, const char* attrib_name, bool& value);
-	inline bool GetFloatAttrib(tinyxml2::XMLElement* element, const char* attrib_name, float& value);
+	[[nodiscard]] inline bool GetIntAttrib(tinyxml2::XMLElement* element, const char* attrib_name, int& value);
+	[[nodiscard]] inline bool GetBoolAttrib(tinyxml2::XMLElement* element, const char* attrib_name, bool& value);
+	[[nodiscard]] inline bool GetFloatAttrib(tinyxml2::XMLElement* element, const char* attrib_name, float& value);
 	inline bool GetVector3(tinyxml2::XMLElement* element, glm::vec3& vec);
 	inline bool GetColorVector3(tinyxml2::XMLElement* element, glm::vec3& vec);
 
 	bool ParseMaterials(tinyxml2::XMLElement* material_element);
 	bool ParseObjects(tinyxml2::XMLElement* material_element);
 	bool ParseSkybox(tinyxml2::XMLElement* skybox);
-	bool ParseCamera(Camera_ptr& cam, tinyxml2::XMLElement* material_element);
+	bool ParseCamera(CameraPtr& cam, tinyxml2::XMLElement* material_element);
 	bool ParseLights(tinyxml2::XMLElement* material_element);
 	bool ParseTransforms(glm::mat4& tMatrix, tinyxml2::XMLElement* transform_elem);
 
-	std::map<std::string, Material_ptr> materials;
-	Scene_ptr generated_scene;
+	std::map<std::string, MaterialPtr> materials;
+	ScenePtr generated_scene;
 };
 

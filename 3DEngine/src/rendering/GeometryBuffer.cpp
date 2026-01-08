@@ -1,7 +1,7 @@
 #include "GeometryBuffer.h"
 #include "../shader/GBufferShader.h"
 
-GeometryBuffer_ptr GeometryBuffer::Create(int width, int height)
+GeometryBufferPtr GeometryBuffer::Create(int width, int height)
 {
 	return std::make_shared<GeometryBuffer>(width,height);
 }
@@ -53,7 +53,7 @@ GeometryBuffer::~GeometryBuffer()
 	glDeleteFramebuffers(1,&m_DeferredFboHandle);
 }
 
- void GeometryBuffer::StartGBufferComp([[maybe_unused]] const Scene_ptr& scene)
+ void GeometryBuffer::StartGBufferComp([[maybe_unused]] const ScenePtr& scene)
  {
 	 // TODO: Use scene for GBuffer composition
 	 glBindFramebuffer(GL_FRAMEBUFFER, m_DeferredFboHandle);

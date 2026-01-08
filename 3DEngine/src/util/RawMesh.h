@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include "SharedPointer.h"
+#include <memory>
 
 #include <vector>
 #include <string>
@@ -8,9 +9,18 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-SHARED_PTR_CLASS_DECL(OpenGLRawMesh);
-SHARED_PTR_CLASS_DECL(IndexedRawMesh);
-SHARED_PTR_CLASS_DECL(WavefrontObjMaterial);
+class OpenGLRawMesh;
+using OpenGLRawMeshPtr = std::shared_ptr<OpenGLRawMesh>;
+using OpenGLRawMeshConstPtr = std::shared_ptr<const OpenGLRawMesh>;
+using OpenGLRawMeshWeakPtr = std::weak_ptr<OpenGLRawMesh>;
+class IndexedRawMesh;
+using IndexedRawMeshPtr = std::shared_ptr<IndexedRawMesh>;
+using IndexedRawMeshConstPtr = std::shared_ptr<const IndexedRawMesh>;
+using IndexedRawMeshWeakPtr = std::weak_ptr<IndexedRawMesh>;
+class WavefrontObjMaterial;
+using WavefrontObjMaterialPtr = std::shared_ptr<WavefrontObjMaterial>;
+using WavefrontObjMaterialConstPtr = std::shared_ptr<const WavefrontObjMaterial>;
+using WavefrontObjMaterialWeakPtr = std::weak_ptr<WavefrontObjMaterial>;
 
 class AABBox;
 
@@ -35,7 +45,7 @@ struct Tri
 class WavefrontObjMaterial
 {
 public:
-	static WavefrontObjMaterial_ptr Create(std::string name);
+	static WavefrontObjMaterialPtr Create(std::string name);
 	
 	WavefrontObjMaterial(std::string name);
 public:
@@ -77,7 +87,7 @@ public:
 	std::vector<glm::vec4> tangents;
 	std::vector<glm::vec2> texCoords;
 	
-	std::vector<WavefrontObjMaterial_ptr> materials;
+	std::vector<WavefrontObjMaterialPtr> materials;
 
 	std::vector<Range> groupRanges;
 	std::vector<std::string> groupMaterial;
@@ -116,7 +126,7 @@ public:
 
 	~IndexedRawMesh();
 	
-	OpenGLRawMesh_ptr ConvertToOpenGLMesh() const;
+	OpenGLRawMeshPtr ConvertToOpenGLMesh() const;
 
 	std::vector<Tri> faces;
 

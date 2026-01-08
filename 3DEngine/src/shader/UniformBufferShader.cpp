@@ -8,9 +8,9 @@ UniformBufferShader::UniformBufferShader()
 }
 
 
-VertexAttributeInfo_ptr UniformBufferShader::GetVertexAttributeInfo() const
+VertexAttributeInfoPtr UniformBufferShader::GetVertexAttributeInfo() const
 {
-	VertexAttributeInfo_ptr vtxInfo = VertexAttributeInfo::Create();
+	VertexAttributeInfoPtr vtxInfo = VertexAttributeInfo::Create();
 	vtxInfo->mapping[GLSLShader::Position] = 0;
 	vtxInfo->mapping[GLSLShader::Normal] = 1;
 	vtxInfo->mapping[GLSLShader::Tangent] = 2;

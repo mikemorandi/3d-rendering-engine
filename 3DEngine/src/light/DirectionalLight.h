@@ -1,8 +1,12 @@
 #pragma once
 
 #include "Light.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(DirectionalLight);
+class DirectionalLight;
+using DirectionalLightPtr = std::shared_ptr<DirectionalLight>;
+using DirectionalLightConstPtr = std::shared_ptr<const DirectionalLight>;
+using DirectionalLightWeakPtr = std::weak_ptr<DirectionalLight>;
 
 class AABBox;
 
@@ -10,12 +14,12 @@ class DirectionalLight : public Light, public std::enable_shared_from_this<Direc
 {
 public:
 
-	static DirectionalLight_ptr Create(const glm::vec3& direction);
+	static DirectionalLightPtr Create(const glm::vec3& direction);
 
 	virtual const glm::vec3& Direction() const;
 	virtual void SetDirection(const glm::vec3& direction);
 
-	Shape_ptr ModelRepresentation() const override;
+	ShapePtr ModelRepresentation() const override;
 
 	// Shadow mapping overrides
 	virtual glm::mat4 GetLightViewMatrix() const override;
@@ -29,7 +33,7 @@ protected:
 	void UpdateVisMesh();
 
 	glm::vec3 direction;
-	Shape_ptr visMesh;
+	ShapePtr visMesh;
 
 };
 

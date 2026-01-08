@@ -26,7 +26,7 @@ void Camera::UpdateViewMatrix()
 	NotifyObservers();
 }
 
-void Camera::AddObserver(const CameraObserver_ptr & observer)
+void Camera::AddObserver(const CameraObserverPtr & observer)
 {
 	observers.push_back(observer);
 }

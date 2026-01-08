@@ -7,7 +7,7 @@ namespace fs = std::filesystem;
 
 CubeMapTexture::CubeMapTexture(const std::filesystem::path& cubeMapTexturePath)
 {	
-	std::vector<ImageData_ptr> images = ImageUtil::LoadCubeMapImages(cubeMapTexturePath);
+	std::vector<ImageDataPtr> images = ImageUtil::LoadCubeMapImages(cubeMapTexturePath);
 	LoadImages(images);
 }
 
@@ -20,7 +20,7 @@ CubeMapTexture::CubeMapTexture(const std::filesystem::path& textureBasePath, con
 		return textureBasePath / suffixes[i] / fs::path("." + imageExtension);
 	};
 
-	std::vector<ImageData_ptr> images = ImageUtil::LoadImages({
+	std::vector<ImageDataPtr> images = ImageUtil::LoadImages({
 		getTextureFileName(0),
 		getTextureFileName(1),
 		getTextureFileName(2),
@@ -32,7 +32,7 @@ CubeMapTexture::CubeMapTexture(const std::filesystem::path& textureBasePath, con
 	LoadImages(images);
 }
 
-void CubeMapTexture::LoadImages(std::vector<ImageData_ptr>& images)
+void CubeMapTexture::LoadImages(std::vector<ImageDataPtr>& images)
 {
 	/*
 	cubemap texture layout

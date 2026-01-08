@@ -1,18 +1,25 @@
 #pragma once
 
 #include "Scene.h"
+#include <memory>
 
 
-SHARED_PTR_CLASS_DECL(SceneOverlay2D);
-SHARED_PTR_CLASS_DECL(Camera);
+class SceneOverlay2D;
+using SceneOverlay2DPtr = std::shared_ptr<SceneOverlay2D>;
+using SceneOverlay2DConstPtr = std::shared_ptr<const SceneOverlay2D>;
+using SceneOverlay2DWeakPtr = std::weak_ptr<SceneOverlay2D>;
+class Camera;
+using CameraPtr = std::shared_ptr<Camera>;
+using CameraConstPtr = std::shared_ptr<const Camera>;
+using CameraWeakPtr = std::weak_ptr<Camera>;
 
 class SceneOverlay2D : public Scene
 {
 public:
 
-	SceneOverlay2D(Scene_ptr scene);
+	SceneOverlay2D(ScenePtr scene);
 
-	static SceneOverlay2D_ptr Create(Scene_ptr scene);
+	static SceneOverlay2DPtr Create(ScenePtr scene);
 
 	virtual void TimeUpdate(double time) override;
 

@@ -1,7 +1,12 @@
 #pragma once
 #include "RenderMesh.h"
+#include "../util/SharedPointer.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(WireCube);
+class WireCube;
+using WireCubePtr = std::shared_ptr<WireCube>;
+using WireCubeConstPtr = std::shared_ptr<const WireCube>;
+using WireCubeWeakPtr = std::weak_ptr<WireCube>;
 
 class WireCube : public RenderMesh
 {

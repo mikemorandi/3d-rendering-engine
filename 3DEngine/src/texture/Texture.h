@@ -1,9 +1,12 @@
 #pragma once
 
-#include "../util/SharedPointer.h"
+#include <memory>
 #include "../core/gl.h"
 
-SHARED_PTR_CLASS_DECL(Texture);
+class Texture;
+using TexturePtr = std::shared_ptr<Texture>;
+using TextureConstPtr = std::shared_ptr<const Texture>;
+using TextureWeakPtr = std::weak_ptr<Texture>;
 
 class Texture 
 {
@@ -31,14 +34,14 @@ public:
 	void BindTexture(int textureUnit);
 
 	/// Returns true, if the texture is a valid OpenGL Texture2D
-	bool IsValid() const;
+	[[nodiscard]] bool IsValid() const;
 
-	Format TextureFormat() const;
+	[[nodiscard]] Format TextureFormat() const;
 
-	GLuint Handle() const { return texObject; };
+	[[nodiscard]] GLuint Handle() const { return texObject; };
 
 	/// Sets data for this texture (must be bound). Make sure data is large enough for the textures dimensions
-	virtual bool SetData(void* data) = 0;
+	[[nodiscard]] virtual bool SetData(void* data) = 0;
 
 
 protected:

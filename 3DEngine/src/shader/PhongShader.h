@@ -2,11 +2,23 @@
 
 #include "ShaderBase.h"
 #include "MaterialShader.h"
+#include "../util/SharedPointer.h"
 #include <memory>
 
-SHARED_PTR_CLASS_DECL(PhongShader)
-SHARED_PTR_CLASS_DECL(PhongMaterial);
-SHARED_PTR_CLASS_DECL(TextureMaterial);
+class PhongShader;
+using PhongShaderPtr = std::shared_ptr<PhongShader>;
+using PhongShaderConstPtr = std::shared_ptr<const PhongShader>;
+using PhongShaderWeakPtr = std::weak_ptr<PhongShader>;
+
+class PhongMaterial;
+using PhongMaterialPtr = std::shared_ptr<PhongMaterial>;
+using PhongMaterialConstPtr = std::shared_ptr<const PhongMaterial>;
+using PhongMaterialWeakPtr = std::weak_ptr<PhongMaterial>;
+
+class TextureMaterial;
+using TextureMaterialPtr = std::shared_ptr<TextureMaterial>;
+using TextureMaterialConstPtr = std::shared_ptr<const TextureMaterial>;
+using TextureMaterialWeakPtr = std::weak_ptr<TextureMaterial>;
 
 class PhongShader
 	: public MaterialShader
@@ -16,21 +28,21 @@ public:
 
 	SHARED_PTR_FACTORY(PhongShader);
 
-	virtual bool Use(const Scene_ptr& scene, const glm::mat4& modelTransform) override;
+	virtual bool Use(const ScenePtr& scene, const glm::mat4& modelTransform) override;
 
-	virtual bool SetMaterial(const Material_cptr& material) override;
+	virtual bool SetMaterial(const MaterialConstPtr& material) override;
 
 	virtual void UnUse() override;
 
 	PhongShader();
 	virtual ~PhongShader();
 
-	PhongMaterial_cptr phongMaterial;
-	TextureMaterial_cptr textureMaterial;
+	PhongMaterialConstPtr phongMaterial;
+	TextureMaterialConstPtr textureMaterial;
 
 protected:
 
-	void SetLightAndModel(const Scene_ptr& scene);
+	void SetLightAndModel(const ScenePtr& scene);
 	void EnsureDummyTextureExists();
 	void SetupMaterialTextures();
 

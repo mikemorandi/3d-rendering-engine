@@ -1,15 +1,19 @@
 #pragma once
 
 #include "ShaderBase.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(UniformBufferShader)
+class UniformBufferShader;
+using UniformBufferShaderPtr = std::shared_ptr<UniformBufferShader>;
+using UniformBufferShaderConstPtr = std::shared_ptr<const UniformBufferShader>;
+using UniformBufferShaderWeakPtr = std::weak_ptr<UniformBufferShader>;
 
 class UniformBufferShader : public ShaderBase
 {
 public:
 	UniformBufferShader();
 
-	virtual VertexAttributeInfo_ptr GetVertexAttributeInfo() const override;
+	virtual VertexAttributeInfoPtr GetVertexAttributeInfo() const override;
 
 };
 

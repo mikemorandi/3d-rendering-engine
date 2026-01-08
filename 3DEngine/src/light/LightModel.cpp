@@ -17,7 +17,7 @@
 LightModel::LightModel()
 	: valid(true)
 {
-	UniformBufferShader_ptr unformBufferShader(new UniformBufferShader());
+	UniformBufferShaderPtr unformBufferShader(new UniformBufferShader());
 
 	if(unformBufferShader->isLinked())
 	{
@@ -43,7 +43,7 @@ LightModel::LightModel()
 			"Lights.AmbientLight0.Color"
 		};
 
-		lightsBuffer.reset(new UniformBuffer(unformBufferShader,"Lights", elemNames));
+		lightsBuffer = std::make_shared<UniformBuffer>(unformBufferShader,"Lights", elemNames);
 
 		valid = true;
 	}
@@ -55,18 +55,18 @@ LightModel::~LightModel()
 	
 }
 
-UniformBuffer_ptr LightModel::GetLightsBuffer() const
+UniformBufferPtr LightModel::GetLightsBuffer() const
 {
 	return lightsBuffer;
 }
 
-void LightModel::UpdateUniformBuffer(const Camera_cptr& cam)
+void LightModel::UpdateUniformBuffer(const CameraConstPtr& cam)
 {
 	glm::mat3 directionTransformMatrix	= glm::transpose(glm::inverse(glm::mat3(cam->viewMatrix)));
 	
 	for(size_t i=0; i < pointLights.size(); i++)
 	{
-		PointLight_ptr pl = pointLights[i];
+		PointLightPtr pl = pointLights[i];
 
 		std::stringstream lightName;
 		lightName << "Lights.PointLights[" << i << "].";
@@ -77,7 +77,7 @@ void LightModel::UpdateUniformBuffer(const Camera_cptr& cam)
 
 	for(size_t i=0; i < spotLights.size(); i++)
 	{
-		SpotLight_ptr sl = spotLights[i];
+		SpotLightPtr sl = spotLights[i];
 
 		std::stringstream lightName;
 		lightName << "Lights.SpotLights[" << i << "].";
@@ -152,9 +152,9 @@ void LightModel::InitializeShadowMaps(const AABBox& sceneBounds, int resolution)
 	}
 }
 
-std::vector<Light_ptr> LightModel::GetShadowCastingLights() const
+std::vector<LightPtr> LightModel::GetShadowCastingLights() const
 {
-	std::vector<Light_ptr> shadowLights;
+	std::vector<LightPtr> shadowLights;
 
 	if (directionalLight && directionalLight->CastsShadows())
 	{

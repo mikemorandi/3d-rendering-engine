@@ -40,7 +40,7 @@ void PerspectiveCamera::SetFov(float fov)
 	UpdateProjectionMatrix();
 }
 
-void PerspectiveCamera::ViewportChanged(const Viewport_ptr& viewport)
+void PerspectiveCamera::ViewportChanged(const ViewportPtr& viewport)
 {
 	SetAspectRatio((float)viewport->width / viewport->height);
 }

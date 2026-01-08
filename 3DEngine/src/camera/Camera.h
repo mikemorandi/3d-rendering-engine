@@ -1,15 +1,22 @@
 #pragma once
 
 #include "../input/ViewportObserver.h"
-#include "../util/SharedPointer.h"
 
 #include "Frustum.h"
 
 #include <glm/mat4x4.hpp>
 #include <vector>
 
-SHARED_PTR_CLASS_DECL(Camera);
-SHARED_PTR_CLASS_DECL(CameraObserver);
+// Forward declarations
+class Camera;
+using CameraPtr = std::shared_ptr<Camera>;
+using CameraConstPtr = std::shared_ptr<const Camera>;
+using CameraWeakPtr = std::weak_ptr<Camera>;
+
+class CameraObserver;
+using CameraObserverPtr = std::shared_ptr<CameraObserver>;
+using CameraObserverConstPtr = std::shared_ptr<const CameraObserver>;
+using CameraObserverWeakPtr = std::weak_ptr<CameraObserver>;
 
 class CameraObserver
 {
@@ -35,7 +42,7 @@ public:
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
 
-	void AddObserver(const CameraObserver_ptr& observer);
+	void AddObserver(const CameraObserverPtr& observer);
 
 protected:
 
@@ -43,6 +50,6 @@ protected:
 
 	void NotifyObservers();
 
-	std::vector<CameraObserver_ptr> observers;
+	std::vector<CameraObserverPtr> observers;
 };
 

@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../util/Util.h"
+#include "../util/TimeManager.h"
 
 #include "../input/WindowEventHandler.h"
 
@@ -32,15 +33,17 @@
 
 using std::vector;
 
-Scene_ptr Scene::Create(const Camera_ptr& cam, bool has_frambufer)
+ScenePtr Scene::Create(const CameraPtr& cam, bool has_frambufer)
 {
 	auto ptr = std::make_shared<Scene>(cam, has_frambufer);
 	cam->AddObserver(ptr);
 	return ptr;
 }
 
-Scene::Scene(const Camera_ptr& cam,bool has_frambufer)
-	: renderLightRepresentation(false)
+Scene::Scene(const CameraPtr& cam,bool has_frambufer)
+	: useInspectionMode(false)
+	, lastMousePosition(0.0f, 0.0f)
+	, renderLightRepresentation(false)
 	, renderBoundingBoxes(false)
 {
 
@@ -49,21 +52,19 @@ Scene::Scene(const Camera_ptr& cam,bool has_frambufer)
 
 	activeCamera = cam;
 
-	lightModel.reset(new LightModel());
+	lightModel = std::make_shared<LightModel>();
 
 	if(!lightModel->IsValid())
 	{
 		throw std::runtime_error("Could not create light model");
 	}
-	
-	if(true)
-	{
-		inspectionCamAdapter.reset(new InspectionCameraAdapter (cam));
-	} 
-	else
-	{
-		fpCamAdapter.reset(new FirstPersonCameraAdapter(cam));
-	}
+
+	// Create both camera adapters
+	inspectionCamAdapter = std::make_shared<InspectionCameraAdapter>(cam);
+	fpCamAdapter = std::make_shared<FirstPersonCameraAdapter>(cam);
+
+	// Register first person camera adapter for time updates (smooth movement)
+	TimeManager::Instance().AddTimeObserver(fpCamAdapter);
 
 	WindowEventHandler& winEventHandler = WindowEventHandler::Instance();
 	winEventHandler.AddViewportObserver(cam);
@@ -85,32 +86,34 @@ Scene::Scene(const Camera_ptr& cam,bool has_frambufer)
 
 Scene::~Scene()
 {
-
+	// Unregister time observer to prevent accessing destroyed objects
+	if (fpCamAdapter)
+		TimeManager::Instance().RemoveTimeObserver(fpCamAdapter);
 }
 
 void Scene::UpdateLightBboxes()
 {
 }
 
-void Scene::AddShape(const Shape_ptr& shape)
+void Scene::AddShape(const ShapePtr& shape)
 {
 	objects.push_back(shape);
 	UpdateLightBboxes();
 }
 
-void Scene::AddShapes(const std::vector<Shape_ptr> shapes)
+void Scene::AddShapes(const std::vector<ShapePtr> shapes)
 {
 	std::copy(shapes.cbegin(), shapes.cend(), std::back_inserter(objects));
 	UpdateLightBboxes();
 }
 
-void Scene::SetSkybox(const Skybox_ptr& skybox)
+void Scene::SetSkybox(const SkyboxPtr& skybox)
 {
 	this->skybox = skybox;
 }
 
 
-void Scene::Render(const Viewport_ptr& viewport)
+void Scene::Render(const ViewportPtr& viewport)
 {
 	viewport->Apply();
 
@@ -119,7 +122,7 @@ void Scene::Render(const Viewport_ptr& viewport)
 		skybox->Render(shared_from_this());
 
 	//Render objects
-	for(Shape_ptr& s : objects)
+	for(ShapePtr& s : objects)
 	{
 		s->Render(shared_from_this());
 	}
@@ -174,9 +177,9 @@ void Scene::TimeUpdate(double time)
 {
 	(void)time;  // Animation is frame-based, not time-based
 	//Animate lights
-	SpotLight_ptr pl;
+	SpotLightPtr pl;
 	
-	auto rotate_light = [](SpotLight_ptr& sl, float radians, const glm::vec3& axis)
+	auto rotate_light = [](SpotLightPtr& sl, float radians, const glm::vec3& axis)
 	{
 		glm::mat4 lightTransform1 = glm::rotate(glm::mat4(1.0f), radians, axis);
 		sl->SetPosition(lightTransform1 * sl->Position());
@@ -202,41 +205,37 @@ void Scene::TimeUpdate(double time)
 	lightModel->UpdateUniformBuffer(activeCamera);
 }
 
-void Scene::SetCamera(const Camera_ptr& cam)
+void Scene::SetCamera(const CameraPtr& cam)
 {
 	activeCamera = cam;
 	cam->AddObserver(shared_from_this());
 }
 
-void Scene::AddLight(const PointLight_ptr& light)
+void Scene::AddLight(const PointLightPtr& light)
 {
 	lightModel->pointLights.push_back(light);
 }
 
-void Scene::AddLight(const SpotLight_ptr& light)
+void Scene::AddLight(const SpotLightPtr& light)
 {
 	lightModel->spotLights.push_back(light);
 }
 
-void Scene::SetLight(const DirectionalLight_ptr& light)
+void Scene::SetLight(const DirectionalLightPtr& light)
 {
 	lightModel->directionalLight = light;
 }
 
-void Scene::SetLight(const AmbientLight_ptr& light)
+void Scene::SetLight(const AmbientLightPtr& light)
 {
 	lightModel->ambientLight = light;
 }
 
 void Scene::ConnectInputHandler(InputHandler& ih)
 {
-	if (inspectionCamAdapter)
-		ih.AddMouseObserver(inspectionCamAdapter);
-	else if (fpCamAdapter)
-	{
-		ih.AddMouseObserver(fpCamAdapter);
-		ih.AddKeyboardObserver(fpCamAdapter);
-	}
+	// Scene will handle all input and forward to the appropriate adapter
+	ih.AddMouseObserver(std::static_pointer_cast<MouseObserver>(shared_from_this()));
+	ih.AddKeyboardObserver(std::static_pointer_cast<KeyboardObserver>(shared_from_this()));
 }
 
 AABBox Scene::BoundingBox() const
@@ -257,6 +256,100 @@ void Scene::SetRenderLightRepresentation(bool enable)
 	renderLightRepresentation = enable;
 }
 
+void Scene::SetUseInspectionMode(bool enable)
+{
+	useInspectionMode = enable;
+}
+
 void Scene::CameraChanged()
 {
+}
+
+void Scene::OnKey(const Input::Key key, const Input::Modifier mod)
+{
+	// Handle space key to toggle camera mode
+	if (key == Input::Key::SPACE)
+	{
+		ToggleCameraMode();
+		return;
+	}
+
+	// Forward keyboard input to the active adapter
+	if (!useInspectionMode && fpCamAdapter)
+	{
+		fpCamAdapter->OnKey(key, mod);
+	}
+}
+
+void Scene::OnKeyStateChange(const Input::Key key, const Input::KeyState state)
+{
+	// Forward key state changes to the active adapter
+	if (!useInspectionMode && fpCamAdapter)
+	{
+		fpCamAdapter->OnKeyStateChange(key, state);
+	}
+}
+
+void Scene::OnMouseMove(const glm::vec2& position)
+{
+	lastMousePosition = position;
+	if (useInspectionMode && inspectionCamAdapter)
+	{
+		inspectionCamAdapter->OnMouseMove(position);
+	}
+	else if (!useInspectionMode && fpCamAdapter)
+	{
+		fpCamAdapter->OnMouseMove(position);
+	}
+}
+
+void Scene::OnMouseDrag(const glm::vec2& position)
+{
+	lastMousePosition = position;
+	if (useInspectionMode && inspectionCamAdapter)
+	{
+		inspectionCamAdapter->OnMouseDrag(position);
+	}
+	else if (!useInspectionMode && fpCamAdapter)
+	{
+		fpCamAdapter->OnMouseDrag(position);
+	}
+}
+
+void Scene::OnMouseClick(Input::MouseButton button, Input::Direction state, const glm::vec2& position)
+{
+	lastMousePosition = position;
+	if (useInspectionMode && inspectionCamAdapter)
+	{
+		inspectionCamAdapter->OnMouseClick(button, state, position);
+	}
+	else if (!useInspectionMode && fpCamAdapter)
+	{
+		fpCamAdapter->OnMouseClick(button, state, position);
+	}
+}
+
+void Scene::OnMouseWheel(Input::Direction direction, const glm::vec2& position)
+{
+	if (useInspectionMode && inspectionCamAdapter)
+	{
+		inspectionCamAdapter->OnMouseWheel(direction, position);
+	}
+	else if (!useInspectionMode && fpCamAdapter)
+	{
+		fpCamAdapter->OnMouseWheel(direction, position);
+	}
+}
+
+void Scene::ToggleCameraMode()
+{
+	useInspectionMode = !useInspectionMode;
+
+	// Synchronize mouse position to prevent view jumping
+	if (inspectionCamAdapter)
+		inspectionCamAdapter->OnMouseClick(Input::MouseButton::LEFT, Input::Direction::UP, lastMousePosition);
+	if (fpCamAdapter)
+		fpCamAdapter->OnMouseClick(Input::MouseButton::LEFT, Input::Direction::UP, lastMousePosition);
+
+	std::cout << "Camera mode: " << (useInspectionMode ? "Inspection" : "First Person") << std::endl;
 }

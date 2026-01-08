@@ -1,8 +1,12 @@
 #pragma once
 
 #include "Camera.h"
+#include <memory>
 
-SHARED_PTR_CLASS_DECL(PerspectiveCamera);
+class PerspectiveCamera;
+using PerspectiveCameraPtr = std::shared_ptr<PerspectiveCamera>;
+using PerspectiveCameraConstPtr = std::shared_ptr<const PerspectiveCamera>;
+using PerspectiveCameraWeakPtr = std::weak_ptr<PerspectiveCamera>;
 
 class PerspectiveCamera : public Camera
 {
@@ -13,7 +17,7 @@ public:
 	void SetFov(float fov);
 	void SetAspectRatio(float aspectRatio);
 
-	virtual void ViewportChanged(const Viewport_ptr& viewport) override;
+	virtual void ViewportChanged(const ViewportPtr& viewport) override;
 
 	virtual Frustum& CameraFrustum() override;
 

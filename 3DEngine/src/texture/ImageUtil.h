@@ -1,17 +1,20 @@
 #pragma once
 
 #include <string>
+#include <memory>
 #include <vector>
 #include <filesystem>
 
-#include "../util/SharedPointer.h"
 
-SHARED_PTR_CLASS_DECL(ImageData)
+class ImageData;
+using ImageDataPtr = std::shared_ptr<ImageData>;
+using ImageDataConstPtr = std::shared_ptr<const ImageData>;
+using ImageDataWeakPtr = std::weak_ptr<ImageData>;
 
 class ImageData {
 public:
 
-	static ImageData_ptr Create(unsigned int width, unsigned int height, unsigned int components = 4);
+	static ImageDataPtr Create(unsigned int width, unsigned int height, unsigned int components = 4);
 
 	typedef unsigned char pixelFormat_t;
 
@@ -29,11 +32,11 @@ class ImageUtil
 {
 public:
 		
-	static ImageData_ptr LoadImage(const std::filesystem::path path);
+	static ImageDataPtr LoadImage(const std::filesystem::path path);
 
-	static std::vector<ImageData_ptr> LoadImages(const std::vector<std::filesystem::path> paths);
+	static std::vector<ImageDataPtr> LoadImages(const std::vector<std::filesystem::path> paths);
 
-	static std::vector<ImageData_ptr> LoadCubeMapImages(const std::filesystem::path path);
+	static std::vector<ImageDataPtr> LoadCubeMapImages(const std::filesystem::path path);
 
 private:
 

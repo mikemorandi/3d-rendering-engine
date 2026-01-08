@@ -23,7 +23,7 @@ public:
 
 	bool LoadScene(std::string& sceneName);
 
-	void InitializeEvents(Scene_ptr& scene);
+	void InitializeEvents(ScenePtr& scene);
 
 	void SetWindowTitle(const std::string title);
 
@@ -31,8 +31,8 @@ public:
 
 private:
 	GLFWwindow* window;
-	Viewport_ptr viewport;
-	Renderer_ptr renderer;
+	ViewportPtr viewport;
+	RendererPtr renderer;
 	unsigned int numMultisamples;
 	static const std::string WINDOW_TITLE_PREFIX;
 
